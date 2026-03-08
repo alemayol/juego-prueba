@@ -193,10 +193,10 @@ public class MapHandler {
             int yVisible = (int) (gc.getCanvas().getHeight() / zoom) / 2;
 
             // Calculamos Tiles visibles para el jugador (campo de vision) para no renderizar mas de la cuenta
-            int colInicial = Math.max(0, (player.worldX - xVisible) / tileWidth);
-            int colFinal = Math.min(map.getWidth(), (player.worldX + xVisible) / tileWidth) + 2;
-            int filaInicial = Math.max(0, (player.worldY - yVisible) / tileHeight);
-            int filaFinal = Math.min(map.getHeight(), (player.worldY + yVisible) / tileHeight) + 2;
+            int colInicial = Math.max(0, (player.getWorldX() - xVisible) / tileWidth);
+            int colFinal = Math.min(map.getWidth(), (player.getWorldX() + xVisible) / tileWidth) + 2;
+            int filaInicial = Math.max(0, (player.getWorldY() - yVisible) / tileHeight);
+            int filaFinal = Math.min(map.getHeight(), (player.getWorldX() + yVisible) / tileHeight) + 2;
 
 
             for (MapLayer layer : this.map.getLayers()) {

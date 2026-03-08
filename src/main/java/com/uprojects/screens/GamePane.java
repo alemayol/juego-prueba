@@ -133,7 +133,7 @@ public class GamePane extends Pane {
             System.out.println("[ADVERTENCIA]: GamePane no tiene scene al comenzar");
         }
 
-        this.localPlayer = new Player(keyH, (int) canvas.getWidth(), (int) canvas.getHeight(), tileSize, "Alejandro");
+        this.localPlayer = new Player(keyH, (int) canvas.getWidth(), (int) canvas.getHeight(), tileSize, "Alejandro", "Amarillo");
         this.players.put("id1", localPlayer);
         this.mapHandler = new MapHandler(players.get("id1"));
         this.collisionChecker = new CollisionChecker(mapHandler);
@@ -222,7 +222,7 @@ public class GamePane extends Pane {
 
         gc.translate((canvas.getWidth() / 2), (canvas.getHeight() / 2));
         gc.scale(zoom, zoom);
-        gc.translate(-localPlayer.worldX, -localPlayer.worldY);
+        gc.translate(-localPlayer.getWorldX(), -localPlayer.getWorldY());
 
 
         mapHandler.draw(this.gc, zoom);

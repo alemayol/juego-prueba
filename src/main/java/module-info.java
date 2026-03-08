@@ -7,6 +7,7 @@ module com.uprojects.amongus {
     requires javafx.fxml;
     requires javafx.graphics;
     requires com.esotericsoftware.kryo;
+    requires kryonet;
 
     exports com.uprojects.screens;
     exports com.uprojects.stages;

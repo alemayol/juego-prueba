@@ -1,8 +1,6 @@
 package com.uprojects.helpers;
 
-import com.uprojects.core.ArreglarCablesTarea;
-import com.uprojects.core.GolpearBotonTarea;
-import com.uprojects.core.Tarea;
+import com.uprojects.core.*;
 
 public class TareaFactory {
 
@@ -11,11 +9,11 @@ public class TareaFactory {
             case "cables" -> {
                 return new ArreglarCablesTarea(worldX, worldY, tareaWidth, tareaHeight);
             }
-            case "swipe-card" -> {
-                // return new SwipeCardTarea(x, y, w, h);
+            case "codigo" -> {
+                return new CodigoNumericoTarea(worldX, worldY, tareaWidth, tareaHeight);
             }
-            case "download-data" -> {
-                // return new DownloadTarea(x, y, w, h);
+            case "escaneo" -> {
+                return new EscaneoTarea(worldX, worldY, tareaWidth, tareaHeight);
             }
             case "motor" -> {
                 return new GolpearBotonTarea(worldX, worldY, tareaWidth, tareaHeight);
@@ -25,6 +23,5 @@ public class TareaFactory {
             }
         }
 
-        return null;
     }
 }

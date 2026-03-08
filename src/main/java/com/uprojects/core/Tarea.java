@@ -29,7 +29,7 @@ public abstract class Tarea {
         double centroX = worldX + (width / 2.0);
         double centroY = worldY + (height / 2.0);
 
-        double distancia = Math.hypot(centroX - jugador.worldX, centroY - jugador.worldY);
+        double distancia = Math.hypot(centroX - jugador.getWorldX(), centroY - jugador.getWorldY());
 
         this.jugadorCerca = (distancia < 16 + (Math.max(width, height) / 2.0));
     }

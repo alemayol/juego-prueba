@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.shape.Ellipse?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Font?>
+
+<fx:root prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: #1a252c; -fx-border-color: #333333; -fx-border-width: 5;" type="javafx.scene.layout.Pane" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      
+      <Button fx:id="btnCerrar" layoutX="540.0" layoutY="14.0" mnemonicParsing="false" style="-fx-background-color: #d32f2f; -fx-text-fill: white;" text="X">
+         <font>
+            <Font name="System Bold" size="14.0" />
+         </font>
+      </Button>
+
+      <Label layoutX="195.0" layoutY="25.0" text="ESCANEO DE MEDBAY" textFill="#00ffcc">
+         <font>
+            <Font name="System Bold" size="20.0" />
+         </font>
+      </Label>
+
+      <Ellipse fill="#2c3e50" layoutX="300.0" layoutY="260.0" radiusX="120.0" radiusY="35.0" stroke="#00ffcc" strokeType="INSIDE" strokeWidth="3.0" />
+      
+      <Circle fill="#888888" layoutX="300.0" layoutY="120.0" radius="35.0" stroke="#111111" strokeType="INSIDE" strokeWidth="2.0" />
+      <Rectangle arcHeight="30.0" arcWidth="30.0" fill="#888888" height="90.0" layoutX="260.0" layoutY="160.0" stroke="#111111" strokeType="INSIDE" strokeWidth="2.0" width="80.0" />
+      <Rectangle fill="#888888" height="40.0" layoutX="270.0" layoutY="240.0" stroke="#111111" strokeType="INSIDE" strokeWidth="2.0" width="20.0" />
+      <Rectangle fill="#888888" height="40.0" layoutX="310.0" layoutY="240.0" stroke="#111111" strokeType="INSIDE" strokeWidth="2.0" width="20.0" />
+
+      <VBox alignment="CENTER" layoutX="100.0" layoutY="310.0" prefHeight="70.0" prefWidth="400.0" spacing="10.0" style="-fx-background-color: #0d1317; -fx-background-radius: 10; -fx-border-color: #00ffcc; -fx-border-radius: 10; -fx-border-width: 2;">
+         <children>
+            <Label fx:id="lblDatosEscaneo" text="Esperando sujeto..." textFill="#00ffcc">
+               <font>
+                  <Font name="Consolas Bold" size="14.0" />
+               </font>
+            </Label>
+            
+            <ProgressBar fx:id="progressEscaner" prefHeight="20.0" prefWidth="360.0" progress="0.0" style="-fx-accent: #00ffcc;" />
+         </children>
+         <padding>
+            <Insets bottom="10.0" top="10.0" />
+         </padding>
+      </VBox>
+
+   </children>
+</fx:root>

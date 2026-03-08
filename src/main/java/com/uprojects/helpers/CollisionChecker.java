@@ -16,10 +16,10 @@ public class CollisionChecker {
 
     public void checkTile(Player jugador) {
 
-        int playerLeftX = jugador.worldX + jugador.areaSolida.x;
-        int playerRightX = jugador.worldX + jugador.areaSolida.x + jugador.areaSolida.width;
-        int playerTopY = jugador.worldY + jugador.areaSolida.y;
-        int playerBottomY = jugador.worldY + jugador.areaSolida.y + jugador.areaSolida.height;
+        int playerLeftX = jugador.getWorldX() + jugador.getAreaSolida().x;
+        int playerRightX = jugador.getWorldX() + jugador.getAreaSolida().x + jugador.getAreaSolida().width;
+        int playerTopY = jugador.getWorldY() + jugador.getAreaSolida().y;
+        int playerBottomY = jugador.getWorldY() + jugador.getAreaSolida().y + jugador.getAreaSolida().height;
 
         int playerLeftColumna = playerLeftX / mapH.getTileSize();
         int playerRightColumna = playerRightX / mapH.getTileSize();
@@ -30,7 +30,7 @@ public class CollisionChecker {
         int tileNum1, tileNum2;
         int tilesize = mapH.getTileSize();
 
-        switch (jugador.getDirection()) {
+        switch (jugador.getAccion()) {
             case "up" -> {
                 int topFilafutura = (playerTopY - jugador.getSpd()) / tilesize;
 
@@ -69,12 +69,12 @@ public class CollisionChecker {
         int tilesize = mapH.getTileSize();
 
         // Coordenadas en una posible proxima posicion
-        int leftX = nextX - (tilesize / 2) + jugador.areaSolida.x;
+        int leftX = nextX - (tilesize / 2) + jugador.getAreaSolida().x;
         //int rightX = nextX - (tilesize / 2) + jugador.areaSolida.x + jugador.areaSolida.width;
-        int rightX = leftX + jugador.areaSolida.width - 1;
-        int topY = nextY - (tilesize / 2) + jugador.areaSolida.y;
+        int rightX = leftX + jugador.getAreaSolida().width - 1;
+        int topY = nextY - (tilesize / 2) + jugador.getAreaSolida().y;
         //int bottomY = nextY - (tilesize / 2) + jugador.areaSolida.y + jugador.areaSolida.height;
-        int bottomY = topY + jugador.areaSolida.height - 1;
+        int bottomY = topY + jugador.getAreaSolida().height - 1;
 
 
         int leftColumna = leftX / tilesize;
