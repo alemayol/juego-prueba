@@ -19,6 +19,9 @@ public class Red {
         kryo.register(PaqueteSalirLobby.class);
         kryo.register(PaqueteRemoverJugador.class);
         kryo.register(PaquetePedirInicio.class);
+        kryo.register(PaqueteLlamarReunion.class);
+        kryo.register(PaqueteVoto.class);
+        kryo.register(PaqueteResultadoVotacion.class);
     }
 
     // Clases que viajan por la red
@@ -72,6 +75,21 @@ public class Red {
 
     public static class PaqueteFinJuego {
         public String mensajeGanador;
+    }
+
+    public static class PaqueteLlamarReunion {
+        public int idJugadorSolicitante;
+    }
+
+    public static class PaqueteVoto {
+        public int idVotante;
+        public int idVotado; // -1 significa que no quiso votar
+    }
+
+    public static class PaqueteResultadoVotacion {
+        public int idExpulsado;
+        public boolean empate; // True si hubo empate o mayoría no quiso votar
+        public boolean eraImpostor;
     }
 
 

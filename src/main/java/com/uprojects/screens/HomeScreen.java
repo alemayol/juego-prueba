@@ -3,8 +3,10 @@ package com.uprojects.screens;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
+import com.uprojects.core.PerfilJugador;
 import com.uprojects.server.GameServer;
 import com.uprojects.server.Red;
+import com.uprojects.ui.ConfiguracionPane;
 import com.uprojects.ui.LobbyPane;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -29,8 +31,13 @@ public class HomeScreen extends ControladorPantalla {
 
     private Client cliente;
     private GameServer servidorLocal;
+    private PerfilJugador perfilLocal;
+
 
     public HomeScreen() {
+
+        // Instanciamos el perfil del jugador
+        perfilLocal = new PerfilJugador();
     }
 
     @FXML
@@ -59,10 +66,12 @@ public class HomeScreen extends ControladorPantalla {
             cliente.connect(5000, "localhost", Red.TCP_PORT, Red.UDP_PORT);
 
             Red.PaqueteConexion conexion = new Red.PaqueteConexion();
-            conexion.nombreJugador = "Jugador_" + new Random().nextInt(100);
+            //conexion.nombreJugador = "Jugador_" + new Random().nextInt(100);
+            conexion.nombreJugador = perfilLocal.getNombre().isEmpty() ? "Jugador_" + new Random().nextInt(100) : perfilLocal.getNombre();
+            conexion.colorJugador = perfilLocal.getColor().isEmpty() ? "Amarillo" : perfilLocal.getColor();
             cliente.sendTCP(conexion);
 
-            GamePane lobby = new GamePane(stageManager.scene, cliente, 0, true);
+            GamePane lobby = new GamePane(stageManager.scene, cliente, 0, true, conexion.nombreJugador, conexion.colorJugador);
             configurarRedListeners(lobby);
             stageManager.setRoot(lobby, "Lobby de espera");
 
@@ -95,7 +104,7 @@ public class HomeScreen extends ControladorPantalla {
                 cliente.start();
 
 
-                GamePane lobby = new GamePane(stageManager.scene, cliente, 0, false);
+                GamePane lobby = new GamePane(stageManager.scene, cliente, 0, false, perfilLocal.getNombre(), perfilLocal.getColor());
                 configurarRedListeners(lobby);
                 // CONNECT TO THE PROVIDED IP
                 cliente.connect(5000, ipHost, Red.TCP_PORT, Red.UDP_PORT);
@@ -118,6 +127,29 @@ public class HomeScreen extends ControladorPantalla {
         }
     }
 
+    // Metodo para abrir la cuenta del jugador
+    @FXML
+    public void cuentaJugador(ActionEvent event) {
+
+        System.out.println("SI SEÑOR");
+        ConfiguracionPane configPane = new ConfiguracionPane(perfilLocal, () -> {
+            try {
+                // Ruta corregida a /styles/homescreen.fxml
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/styles/homescreen.fxml"));
+                Parent root = loader.load();
+                HomeScreen controller = loader.getController();
+                controller.setStageManager(this.stageManager);
+                stageManager.setRoot(root, "Among Us UNEG");
+            } catch (Exception ex) {
+                System.out.println("Error al volver al menu principal: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        });
+
+        stageManager.setRoot(configPane, "Configuración de Cuenta");
+    }
+
+
     @FXML
     public void irAjustes(ActionEvent e) {
 
@@ -132,7 +164,12 @@ public class HomeScreen extends ControladorPantalla {
         cliente.addListener(new Listener() {
 
             public void connected(Connection conexion) {
+                System.out.println("Setting the localID to -> " + conexion.getID());
                 paneActual.setLocalID(conexion.getID());
+            }
+
+            public void disconnected(Connection conexion) {
+
             }
 
             public void received(Connection conexion, Object objeto) {
@@ -157,6 +194,15 @@ public class HomeScreen extends ControladorPantalla {
                     //System.out.println("Recibida la posicion de " + jugadorExt.nombre);
                     paneActual.actualizarPosicionRemoto(jugadorExt);
                 }
+
+                if (objeto instanceof Red.PaqueteLlamarReunion) {
+                    Platform.runLater(paneActual::abrirSalaVotacion);
+                }
+
+                if (objeto instanceof Red.PaqueteResultadoVotacion result) {
+                    Platform.runLater(() -> paneActual.procesarVotacion(result));
+                }
+
             }
         });
     }
@@ -170,7 +216,7 @@ public class HomeScreen extends ControladorPantalla {
 
         // 2. CREATE the UI pane first (so the listener has something to update)
         // We pass 0 as a placeholder ID; Kryonet will give us the real one after connect
-        GamePane gamePane = new GamePane(stageManager.scene, cliente, 0, esHost);
+        GamePane gamePane = new GamePane(stageManager.scene, cliente, 0, esHost, "", "Amarillo");
 
         // 3. ADD LISTENERS BEFORE CONNECTING
         // This ensures we catch the very first packet the server sends

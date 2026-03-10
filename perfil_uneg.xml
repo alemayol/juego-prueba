@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Perfil del Jugador UNEG</comment>
+<entry key="color">AzulClaro</entry>
+<entry key="nombre">Alejandro</entry>
+</properties>

@@ -139,46 +139,6 @@ public class Player extends Entidad {
 
         Image sprite = lastSprite;
 
-        /*
-        switch (direction) {
-            case "up", "down" -> {
-                if (facingTowards.contains("right")) {
-                    sprite = this.right[spriteNumber];
-                } else {
-
-                    sprite = this.left[spriteNumber];
-                }
-            }
-
-            case "left" -> {
-                sprite = this.left[spriteNumber];
-            }
-            case "right" -> {
-                sprite = this.right[spriteNumber];
-            }
-            case "idle-r" -> {
-                sprite = this.idleR[spriteNumber];
-            }
-            case "idle-l" -> {
-                sprite = this.idleL[spriteNumber];
-            }
-            case "paused" -> {
-                if (facingTowards.contains("right")) {
-                    sprite = this.idleR[spriteNumber];
-                } else {
-
-                    sprite = this.idleL[spriteNumber];
-                }
-            }
-            case "killed" -> {
-                sprite = this.electrocutado[spriteNumber];
-            }
-            default -> {
-                break;
-            }
-        }
-
-         */
 
         sprite = getCurrentImage();
 
@@ -186,10 +146,6 @@ public class Player extends Entidad {
 
 
         // Depending on the current direction we draw the respective sprite
-
-
-        //gc.setFill(Color.RED);
-        //gc.fillText("Presione E", worldX, worldY - 12, 32);
         gc.drawImage(sprite, worldX - (double) (tileSize / 2), worldY - (double) (tileSize / 2));
     }
 
@@ -218,9 +174,6 @@ public class Player extends Entidad {
         return this.colision;
     }
 
-    public void setKilled(boolean electrocutado) {
-        this.killed = electrocutado;
-    }
 
     public void setWorldPosition(int x, int y) {
         this.worldX = x;

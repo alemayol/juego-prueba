@@ -18,10 +18,12 @@ public class TareaFactory {
             case "motor" -> {
                 return new GolpearBotonTarea(worldX, worldY, tareaWidth, tareaHeight);
             }
+            case "votacion" -> {
+                return new SalaVotacion(worldX, worldY, tareaWidth, tareaHeight);
+            }
             default -> {
                 return null;
             }
         }
-
     }
 }

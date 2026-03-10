@@ -13,6 +13,7 @@ import com.uprojects.server.Red;
 import com.uprojects.stages.MapHandler;
 import com.uprojects.ui.ArreglarCablesPane;
 import com.uprojects.ui.TareaPane;
+import com.uprojects.ui.VotacionPane;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.scene.Group;
@@ -73,6 +74,8 @@ public class GamePane extends Pane {
     // Player creation
     private Player localPlayer;
     private int localID;
+    private String localPlayerName;
+    private String localPlayerColor;
 
     // Map handler (more like map manager but u get it)
     private MapHandler mapHandler;
@@ -88,11 +91,13 @@ public class GamePane extends Pane {
     private Label lblContador;
     private Label lblLocalIP;
 
-    public GamePane(Scene scene, Client cliente, int localID, boolean isHost) {
+    public GamePane(Scene scene, Client cliente, int localID, boolean isHost, String nombreJugadorLocal, String colorJugadorLocal) {
 
         this.canvas = new Canvas();
         this.localID = localID;
         this.cliente = cliente;
+        this.localPlayerName = nombreJugadorLocal;
+        this.localPlayerColor = colorJugadorLocal;
 
         Group group = new Group(canvas);
 
@@ -201,7 +206,7 @@ public class GamePane extends Pane {
             System.out.println("[ADVERTENCIA]: GamePane no tiene scene al comenzar");
         }
 
-        this.localPlayer = new Player(keyH, (int) canvas.getWidth(), (int) canvas.getHeight(), tileSize, "Alejandro", "Amarillo");
+        this.localPlayer = new Player(keyH, (int) canvas.getWidth(), (int) canvas.getHeight(), tileSize, localPlayerName, localPlayerColor);
         //this.jugadoresRemotos.put();
         this.mapHandler = new MapHandler();
         this.mapHandler.loadMapFile("lobby.tmx");
@@ -332,6 +337,10 @@ public class GamePane extends Pane {
 
     }
 
+    public void removerJugadorRemoto(Red.PaqueteRemoverJugador datos) {
+
+    }
+
     public void agregarJugadorRemoto(Red.PaqueteConexion datos) {
         // Si el ID soy yo mismo, no me agrego a la lista de "remotos"
         System.out.println("Creando jugador remoto");
@@ -455,6 +464,14 @@ public class GamePane extends Pane {
         for (Tarea tarea : tareasPorHacer) {
             if (!tarea.fueCompletada() && tarea.getJugadorCerca()) {
                 System.out.println("Abriendo tarea -> " + tarea.getNombre());
+
+                if (tarea.getNombre().equals("Sala-de-Votacion")) {
+                    Red.PaqueteLlamarReunion reunion = new Red.PaqueteLlamarReunion();
+                    reunion.idJugadorSolicitante = localID;
+                    cliente.sendTCP(reunion);
+                    return;
+                }
+
                 abrirTarea(tarea);
                 break;
             }
@@ -475,6 +492,8 @@ public class GamePane extends Pane {
             uiPane.setPrefSize(tareaOverlay.getWidth(), tareaOverlay.getHeight());
             tareaOverlay.getChildren().clear();
             tareaOverlay.getChildren().add(uiPane);
+            tareaOverlay.setTranslateX((canvas.getWidth() - 400) / 2);
+            tareaOverlay.setTranslateY((canvas.getHeight() - 500) / 2);
             tareaOverlay.setVisible(true);
             tareaOverlay.setDisable(false);
 
@@ -492,6 +511,80 @@ public class GamePane extends Pane {
             tareaOverlay.setVisible(false);
             tareaOverlay.setDisable(true);
             tareaActual = null;
+        }
+    }
+
+    public void abrirSalaVotacion() {
+        Tarea salaVotacion = null;
+
+        for (Tarea tarea : tareasPorHacer) {
+            if (tarea.getNombre().equals("Sala-de-Votacion")) {
+                salaVotacion = tarea;
+                break;
+            }
+        }
+
+        if (salaVotacion != null && salaVotacion.getUiPane() instanceof VotacionPane votacionPane) {
+            HashMap<Integer, String> jugadoresVivos = new HashMap<>();
+
+            /*
+            if (!localPlayer.wasKilled())
+                jugadoresVivos.put(localID, localPlayer.getNombre());
+             */
+
+            for (RemotePlayer remotePlayer : jugadoresRemotos.values()) {
+                System.out.println("Considering " + remotePlayer.getNombre() + " for pool of voting");
+                if (!remotePlayer.wasKilled()) {
+                    System.out.println("Adding " + remotePlayer.getNombre() + " to pool of voting");
+                    jugadoresVivos.put(remotePlayer.getID(), remotePlayer.getNombre());
+                }
+            }
+
+            votacionPane.configurar(jugadoresVivos, localID, this::jugadorSaltaVoto, this::jugadorEjerceVoto);
+        }
+
+        abrirTarea(salaVotacion);
+
+    }
+
+    private void jugadorSaltaVoto() {
+        Red.PaqueteVoto voto = new Red.PaqueteVoto();
+        voto.idVotante = localID;
+        voto.idVotado = -1;
+        cliente.sendTCP(voto);
+    }
+
+    private void jugadorEjerceVoto(int idVotado) {
+
+        Red.PaqueteVoto voto = new Red.PaqueteVoto();
+        voto.idVotante = localID;
+        voto.idVotado = idVotado;
+        cliente.sendTCP(voto);
+    }
+
+    public void procesarVotacion(Red.PaqueteResultadoVotacion resultado) {
+        cerrarTareaActual();
+
+        if (!resultado.empate && resultado.idExpulsado != -1) {
+            if (resultado.idExpulsado == localID) {
+                localPlayer.setKilled(true);
+                localPlayer.setAccion("killed");
+            } else {
+                RemotePlayer jugadorRemotoExpulsado = jugadoresRemotos.get(resultado.idExpulsado);
+
+                if (jugadorRemotoExpulsado != null) {
+                    jugadorRemotoExpulsado.setKilled(true);
+                }
+            }
+        }
+
+        // Tenemos que calcular esto mejor
+        if (!localPlayer.wasKilled()) {
+            localPlayer.setWorldPosition(512, 384);
+        }
+
+        for (RemotePlayer jugadorRemoto : jugadoresRemotos.values()) {
+            jugadorRemoto.setTargets(512, 384);
         }
     }
 

@@ -16,6 +16,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GameServer extends Listener {
 
     private Server server;
+    private boolean enReunion;
+    private HashMap<Integer, Integer> votos;
+    private int votosRecibidos;
     private final int MAX_JUGADORES = 10;
     private final int TCP_PORT = 54555;
     private final int UDP_PORT = 54777;
@@ -27,6 +30,9 @@ public class GameServer extends Listener {
 
     public GameServer() throws IOException {
         this.server = new Server();
+        this.enReunion = false;
+        this.votos = new HashMap<>();
+        this.votosRecibidos = 0;
 
         // Registramos las clases que se transmitiran por la red
         Red.registrar(server.getKryo());
@@ -166,7 +172,69 @@ public class GameServer extends Listener {
             conexion.close();
             broadcastLobbyStatus();
         }
+
+        if (paquete instanceof Red.PaqueteLlamarReunion reunion) {
+            if (!enReunion) {
+                enReunion = true;
+                votos.clear();
+                votosRecibidos = 0;
+                server.sendToAllTCP(reunion);
+            }
+        }
+
+        if (paquete instanceof Red.PaqueteVoto voto) {
+            if (enReunion) {
+                votos.put(voto.idVotante, voto.idVotado);
+                votosRecibidos++;
+
+                int vivos = (int) jugadores.values().stream().filter(p -> !p.killed).count();
+
+                if (votosRecibidos >= vivos) {
+                    procesarVotacion();
+                }
+            }
+        }
+
     }
+
+    private void procesarVotacion() {
+        enReunion = false;
+        HashMap<Integer, Integer> conteo = new HashMap<>();
+
+        for (Integer voto : votos.values()) {
+            conteo.put(voto, conteo.getOrDefault(voto, 0) + 1);
+        }
+
+        int idMax = -1;
+        int maxVotos = 0;
+        boolean empate = false;
+
+        for (java.util.Map.Entry<Integer, Integer> entry : conteo.entrySet()) {
+            if (entry.getValue() > maxVotos) {
+                maxVotos = entry.getValue();
+                idMax = entry.getKey();
+                empate = false;
+            } else if (entry.getValue() == maxVotos) {
+                empate = true;
+            }
+        }
+
+        Red.PaqueteResultadoVotacion resultado = new Red.PaqueteResultadoVotacion();
+
+        if (empate || idMax == -1) {
+            resultado.empate = true;
+            resultado.idExpulsado = -1;
+        } else {
+            resultado.empate = false;
+            resultado.idExpulsado = idMax;
+            ServerPlayer expulsado = jugadores.get(idMax);
+            if (expulsado != null) expulsado.killed = true;
+        }
+
+        server.sendToAllTCP(resultado);
+        verificarFinDeJuego();
+    }
+
 
     private void iniciarJuego(Connection conexion) {
 

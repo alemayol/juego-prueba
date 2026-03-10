@@ -11,7 +11,7 @@ public abstract class Entidad {
 
 
     //Estado de la entidad
-    protected String nombre;
+    protected String nombre, color;
     protected int ID;
     protected boolean paused, killed;
     protected boolean colision;
@@ -159,7 +159,11 @@ public abstract class Entidad {
         return this.tareasTotales;
     }
 
-    public boolean isKilled() {
+    public void setKilled(boolean electrocutado) {
+        this.killed = electrocutado;
+    }
+
+    public boolean wasKilled() {
         return this.killed;
     }
 

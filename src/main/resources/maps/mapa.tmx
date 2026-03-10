@@ -1302,11 +1302,13 @@
   <tile id="1">
    <properties>
     <property name="Solido" type="bool" value="true"/>
+    <property name="tarea" value="votacion"/>
    </properties>
   </tile>
   <tile id="2">
    <properties>
     <property name="Solido" type="bool" value="true"/>
+    <property name="tarea" value="votacion"/>
    </properties>
   </tile>
   <tile id="3">
@@ -1322,11 +1324,13 @@
   <tile id="7">
    <properties>
     <property name="Solido" type="bool" value="true"/>
+    <property name="tarea" value="votacion"/>
    </properties>
   </tile>
   <tile id="8">
    <properties>
     <property name="Solido" type="bool" value="true"/>
+    <property name="tarea" value="votacion"/>
    </properties>
   </tile>
   <tile id="9">
