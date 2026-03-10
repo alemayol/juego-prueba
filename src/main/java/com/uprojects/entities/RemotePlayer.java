@@ -31,13 +31,13 @@ public class RemotePlayer extends Entidad {
 
     public void draw(GraphicsContext gc, Player localPlayer) {
         // Remote players draw relative to the local player's world position
-        double screenX = worldX - localPlayer.worldX + localPlayer.cameraX;
-        double screenY = worldY - localPlayer.worldY + localPlayer.cameraY;
+        //double screenX = worldX - localPlayer.worldX + localPlayer.cameraX;
+        //double screenY = worldY - localPlayer.worldY + localPlayer.cameraY;
 
-        gc.drawImage(getCurrentImage(), screenX, screenY);
+        gc.drawImage(getCurrentImage(), worldX, worldY);
 
         // Bonus: Draw name tag since we have the 'nombre' property
-        gc.fillText(nombre, screenX, screenY - 10);
+        gc.fillText(nombre, worldX, worldY - 10);
     }
 
     public void setTargets(double x, double y) {

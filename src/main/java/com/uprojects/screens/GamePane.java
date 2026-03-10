@@ -50,9 +50,11 @@ public class GamePane extends Pane {
     public final int tileSize = originalTileSize * scale; // 32 * 2 = 64x64 tiles
 
 
+    // Variables del jugador
     private KeyHandler keyH;
     private List<Tarea> tareasPorHacer;
     private Tarea tareaActual;
+    private boolean impostor = false;
 
     // Canvas JavaFx
     public final Canvas canvas;
@@ -70,7 +72,7 @@ public class GamePane extends Pane {
 
     // Player creation
     private Player localPlayer;
-    private final int localID;
+    private int localID;
 
     // Map handler (more like map manager but u get it)
     private MapHandler mapHandler;
@@ -137,6 +139,7 @@ public class GamePane extends Pane {
         this.tareaActual = null;
         this.tareasPorHacer = new ArrayList<>();
         //this.taresPorHacer.add(new ArreglarCablesTarea());
+
 
         // 2. Create the Overlay UI
         lobbyUI = new VBox(10);
@@ -307,7 +310,6 @@ public class GamePane extends Pane {
         localPlayer.draw(this.gc);
 
         for (RemotePlayer jugadorExterno : jugadoresRemotos.values()) {
-            System.out.println("Dibujando a " + jugadorExterno.getNombre());
             jugadorExterno.draw(gc, localPlayer);
         }
 
@@ -452,6 +454,7 @@ public class GamePane extends Pane {
 
         for (Tarea tarea : tareasPorHacer) {
             if (!tarea.fueCompletada() && tarea.getJugadorCerca()) {
+                System.out.println("Abriendo tarea -> " + tarea.getNombre());
                 abrirTarea(tarea);
                 break;
             }
@@ -497,16 +500,34 @@ public class GamePane extends Pane {
     }
 
     public void cambiarAMapaPrincipal(Red.PaqueteIniciarJuego datos) {
-        // 1. Hide Lobby Buttons
+
+        this.impostor = datos.esImpostor;
+
+        if (this.impostor) {
+            System.out.println("ERES EL IMPOSTOR");
+        }
+
+        // Ocultamos la ventana del lobby
         this.ocultarLobbyUI();
 
-        // 2. Tell MapHandler to load the new file
+        // Cargamos el nuevo mapa
         this.mapHandler.loadMapFile(datos.mapa);
+        this.tareasPorHacer = mapHandler.calcularPosicionTareas();
 
-        // 3. Teleport local player to the cafeteria table
-        this.localPlayer.setWorldPosition(datos.inicioX, datos.inicioY);
 
-        // 4. Teleport all remote players to the same spot so they don't 'slide' across the map
+        inicializarTareaUIs();
+
+        System.out.println("=== DEBUG: Tasks Created ===");
+        System.out.println("Total tasks: " + tareasPorHacer.size());
+        for (Tarea t : tareasPorHacer) {
+            System.out.println("Task: " + t.getNombre() + " at (" + t.getWorldX() + ", " + t.getWorldY() + ")");
+        }
+        System.out.println("================================");
+
+
+        // Enviamos a todos los jugadores a la biblioteca (debemos calcular esto mejor, por ahora se queda asi)
+        this.localPlayer.setWorldPosition(datos.inicioX, datos.inicioY); // Primero al jugador local
+
         for (RemotePlayer rp : jugadoresRemotos.values()) {
             rp.setTargets(datos.inicioX, datos.inicioY);
         }
@@ -528,6 +549,17 @@ public class GamePane extends Pane {
 
     public void actualizarPosicionRemoto(Red.PaqueteActualizarJugador status) {
 
+
+        RemotePlayer remotePlayer = jugadoresRemotos.get(status.idJugador);
+
+
+        if (remotePlayer != null) {
+            remotePlayer.setTargets(status.x, status.y);
+            remotePlayer.setAccion(status.accion);
+            remotePlayer.setFacingTowards(status.facingTowards);
+        }
+
+        /*
         for (RemotePlayer remotePlayer : jugadoresRemotos.values()) {
 
             if (status.idJugador == remotePlayer.getID()) {
@@ -538,6 +570,8 @@ public class GamePane extends Pane {
 
             }
         }
+
+         */
     }
 
     public void ocultarLobbyUI() {
@@ -550,5 +584,9 @@ public class GamePane extends Pane {
 
     public Player getLocalPlayer() {
         return this.localPlayer;
+    }
+
+    public void setLocalID(int id) {
+        this.localID = id;
     }
 }

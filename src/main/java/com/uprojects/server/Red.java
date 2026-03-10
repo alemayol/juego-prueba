@@ -47,6 +47,7 @@ public class Red {
         public int inicioX;
         public int inicioY;
         public String mapa; // path -> mapa1.tmx
+        public boolean esImpostor;
     }
 
     public static class PaqueteActualizarJugador {

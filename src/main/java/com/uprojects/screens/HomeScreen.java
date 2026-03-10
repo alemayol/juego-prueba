@@ -132,7 +132,7 @@ public class HomeScreen extends ControladorPantalla {
         cliente.addListener(new Listener() {
 
             public void connected(Connection conexion) {
-
+                paneActual.setLocalID(conexion.getID());
             }
 
             public void received(Connection conexion, Object objeto) {

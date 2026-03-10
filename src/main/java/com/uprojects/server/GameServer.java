@@ -7,7 +7,10 @@ import com.uprojects.entities.RemotePlayer;
 
 import java.io.IOException;
 import java.rmi.Remote;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GameServer extends Listener {
@@ -102,15 +105,8 @@ public class GameServer extends Listener {
     public void received(Connection conexion, Object paquete) {
 
         if (paquete instanceof Red.PaquetePedirInicio) {
-            if (conexion.getID() == 1 && jugadores.size() >= 5) {
-                juegoIniciado = true;
-
-                Red.PaqueteIniciarJuego inicio = new Red.PaqueteIniciarJuego();
-                inicio.inicioX = 30 * 32;
-                inicio.inicioY = 15 * 32;
-                inicio.mapa = ((Red.PaquetePedirInicio) paquete).mapa;
-
-                server.sendToAllTCP(inicio);
+            if (conexion.getID() == 1 && jugadores.size() >= 2) {
+                iniciarJuego(conexion);
             }
         }
 
@@ -172,10 +168,33 @@ public class GameServer extends Listener {
         }
     }
 
-    private void iniciarJuego() {
+    private void iniciarJuego(Connection conexion) {
+
+        // Por si acaso revisamos si el juego ya habia comenzado
+        if (juegoIniciado)
+            return;
+
         juegoIniciado = true;
+
+        List<Integer> idJugadores = new ArrayList<>(jugadores.keySet());
+
+        Collections.shuffle(idJugadores);
+        int idImpostor = idJugadores.get(0); // Como ya los sorteamos, simplemente escogemos el primero
+
+        // Se lo mandamos a cada conexion, es decir, a cada jugador conectado al servidor
+        //for (Connection conexion : server.getConnections()) {
+        Red.PaqueteIniciarJuego iniciarJuego = new Red.PaqueteIniciarJuego();
+        iniciarJuego.mapa = "mapa.tmx";
+        // Por ahora lo mandamos a la biblioteca, tenemos que calcular esto mejor al tener dos mapas
+        iniciarJuego.inicioX = 512;
+        iniciarJuego.inicioY = 384;
+
+        iniciarJuego.esImpostor = conexion.getID() == idImpostor;
+        server.sendToAllTCP(iniciarJuego);
+        //}
+
         System.out.println("¡Sala llena! Iniciando partida...");
-        server.sendToAllTCP(new Red.PaqueteIniciarJuego());
+        //server.sendToAllTCP(new Red.PaqueteIniciarJuego());
     }
 
     private void verificarFinDeJuego() {
