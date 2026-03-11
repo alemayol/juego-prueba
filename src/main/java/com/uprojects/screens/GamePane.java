@@ -720,7 +720,23 @@ public class GamePane extends Pane {
 
                 if (impostor) {
                     localPlayer.setAccion("attacking");
+                    localPlayer.setPaused(true);
                     keyH.resetPressedKeys();
+
+
+                    Platform.runLater(() -> {
+                        long tiempoActual = System.currentTimeMillis();
+                        long tiempoCongelado = tiempoActual + 2000; // 2 segundos
+
+                        while (tiempoActual < tiempoCongelado) {
+                            tiempoActual = System.currentTimeMillis();
+                        }
+
+                        localPlayer.setPaused(false);
+                        localPlayer.setAccion("idle");
+                    });
+
+
                 }
 
                 break;
@@ -781,4 +797,44 @@ public class GamePane extends Pane {
     public void setLocalID(int id) {
         this.localID = id;
     }
+
+    public void mostrarPantallaFinJuego(Red.PaqueteFinJuego paquete) {
+        // Detenemos las entradas del teclado para que nadie se mueva
+        if (this.keyH != null) {
+            this.keyH.resetPressedKeys();
+        }
+
+        // Cerramos cualquier tarea que el jugador tenga abierta
+        cerrarTareaActual();
+
+        // Creamos la pantalla oscura que cubrirá todo el canvas
+        VBox pantallaFin = new VBox(20);
+        pantallaFin.setAlignment(javafx.geometry.Pos.CENTER);
+        pantallaFin.setStyle("-fx-background-color: rgba(0, 0, 0, 0.85);"); // Fondo negro casi opaco
+        pantallaFin.setPrefSize(canvas.getWidth(), canvas.getHeight());
+
+        // Tomamos el mensaje de victoria del servidor y lo mostramos
+        Label lblGanador = new Label(paquete.mensajeGanador);
+        lblGanador.setFont(new javafx.scene.text.Font("Arial", 60));
+        lblGanador.setStyle("-fx-font-weight: bold; -fx-effect: dropshadow(gaussian, black, 10, 0, 0, 0);");
+
+        // Cambiamos el color dependiendo de quién ganó
+        if (paquete.mensajeGanador.contains("IMPOSTORES")) {
+            lblGanador.setTextFill(Color.RED);
+        } else {
+            lblGanador.setTextFill(Color.CYAN); // Azul claro para los tripulantes
+        }
+
+        pantallaFin.getChildren().add(lblGanador);
+
+        // Lo agregamos a la pantalla y forzamos que esté por encima de todo
+        this.getChildren().add(pantallaFin);
+        pantallaFin.toFront();
+
+        // Iniciamos un temporizador de 5 segundos antes de salir al menú para que no sean tan abrupto el cambio
+        javafx.animation.PauseTransition delay = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(5));
+        delay.setOnFinished(e -> irAMenuPrincipal());
+        delay.play();
+    }
+
 }

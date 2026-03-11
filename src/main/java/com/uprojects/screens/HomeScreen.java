@@ -268,6 +268,12 @@ public class HomeScreen extends ControladorPantalla {
                     Platform.runLater(() -> paneActual.procesarVotacion(result));
                 }
 
+                if (objeto instanceof Red.PaqueteFinJuego finJuego) {
+                    Platform.runLater(() -> {
+                        paneActual.mostrarPantallaFinJuego(finJuego);
+                    });
+                }
+
             }
         });
     }

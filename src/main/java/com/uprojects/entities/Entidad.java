@@ -108,8 +108,6 @@ public abstract class Entidad {
             spriteNumber = (spriteNumber + 1) % 2;
             spriteCounter = 0;
 
-            if (this.accion.equals("attacking"))
-                this.accion = "idle";
         }
     }
 
@@ -186,5 +184,9 @@ public abstract class Entidad {
 
     public int getID() {
         return this.ID;
+    }
+
+    public void setPaused(boolean pausado) {
+        this.paused = pausado;
     }
 }

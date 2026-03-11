@@ -17,13 +17,11 @@ public class EscaneoTarea extends Tarea {
 
     @Override
     public void actualizarTarea(double delta) {
-        // En este caso no necesitamos lógica aquí porque el UI maneja el tiempo
-        /*
+        // Si el progreso que envia la UI es 1.0 (100%) o mayor, completamos la tarea
         if (delta >= 1.0) {
-            super.actualizarTarea(delta);
+            this.completada = true;
         }
 
-         */
 
     }
 }

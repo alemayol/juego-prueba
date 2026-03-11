@@ -258,7 +258,6 @@ public class GameServer extends Listener {
                             int tareasPendienteDelElectrocutado = jugador.tareasTotales - jugador.tareasCompletadas;
                             this.tareasRestantes -= tareasPendienteDelElectrocutado;
 
-                            verificarFinDeJuego();
 
                             if (!juegoIniciado)
                                 return;
@@ -273,17 +272,23 @@ public class GameServer extends Listener {
 
                         }
                     }
+                }
 
-                    if (!huboEliminacion) {
+                if (!huboEliminacion) {
 
-                        Red.PaqueteRespuestaKill respuestaKill = new Red.PaqueteRespuestaKill();
-                        respuestaKill.idJugadorElectrocutado = -1;
-                        respuestaKill.tareasRestantes = this.tareasRestantes;
+                    Red.PaqueteRespuestaKill respuestaKill = new Red.PaqueteRespuestaKill();
+                    respuestaKill.idJugadorElectrocutado = -1;
+                    respuestaKill.tareasRestantes = this.tareasRestantes;
 
-                        // Se lo enviamos solo al impostor
-                        conexion.sendTCP(respuestaKill);
 
-                    }
+                    verificarFinDeJuego();
+
+                    // Verificar juego pone esta variable a falso
+                    if (!juegoIniciado)
+                        return;
+
+                    // Se lo enviamos solo al impostor
+                    conexion.sendTCP(respuestaKill);
 
                 }
             }
@@ -390,8 +395,8 @@ public class GameServer extends Listener {
         boolean todosTerminaron = true;
 
         // Calculamos la cantidad de jugadores electrocutados para ver si el impostor gano
-        int jugadoresVivos = jugadores.size();
-        boolean jugadoresInsuficientes = false;
+        int jugadoresVivos = jugadores.size() - cantImpostores;
+        boolean debeFinalizarJuego = false;
 
         // Revisamos si algún jugador aún no termina sus tareas
         for (ServerPlayer jugador : jugadores.values()) {
@@ -412,9 +417,13 @@ public class GameServer extends Listener {
             fin.mensajeGanador = "¡VICTORIA DE LOS TRIPULANTES!";
             server.sendToAllTCP(fin);
 
-            // Aquí podrías reiniciar las variables para una nueva partida
             juegoIniciado = false;
-        } else if (jugadoresVivos < 3) {
+
+            return;
+
+        }
+
+        if (jugadoresVivos < 2 || jugadoresVivos == cantImpostores) {
             System.out.println("El Impostor ha ganado");
             Red.PaqueteFinJuego fin = new Red.PaqueteFinJuego();
 
@@ -424,6 +433,7 @@ public class GameServer extends Listener {
 
             // Aquí podemos reiniciar las variables para una nueva partida
             juegoIniciado = false;
+            return;
         }
     }
 
