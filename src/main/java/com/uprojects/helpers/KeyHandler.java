@@ -5,6 +5,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 
+import java.security.Key;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -12,22 +13,15 @@ public class KeyHandler {
 
     protected boolean upPressed, downPressed, leftPressed, rightPressed;
     protected Set<KeyCode> pressedKeys;
+    protected Set<KeyCode> consumedKeys;
     private Runnable interactionListener;
 
     public KeyHandler(Scene scene) {
 
         pressedKeys = new HashSet<KeyCode>();
+        consumedKeys = new HashSet<KeyCode>();
 
 
-        /*
-        scene.setOnKeyPressed((KeyEvent e) -> {
-            this.pressedKeys.add(e.getCode());
-        });
-        scene.setOnKeyReleased((KeyEvent e) -> {
-            this.pressedKeys.remove(e.getCode());
-        });
-
-         */
     }
 
     public void setInteractionListener(Runnable interaction) {
@@ -39,17 +33,25 @@ public class KeyHandler {
         scene.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
                     this.pressedKeys.add(e.getCode());
 
-                    /*
-                    if (e.getCode() == KeyCode.E) {
-                        if (interactionListener != null) {
-                            this.interactionListener.run();
-                        }
-                    }
 
-                     */
                 }
         );
-        scene.addEventFilter(KeyEvent.KEY_RELEASED, e -> this.pressedKeys.remove(e.getCode()));
+        scene.addEventFilter(KeyEvent.KEY_RELEASED, e -> {
+                    this.pressedKeys.remove(e.getCode());
+                    this.consumedKeys.remove(e.getCode());
+                }
+        );
+    }
+
+    private boolean apenasPresionada(KeyCode keyCode) {
+        // Si esta presionada pero no la hemos procesado, aceptamos la tecla. Sino significa que ya la utilizó antes
+        // Esto es para que no spamee teclas al atacar y activar tareas
+        if (pressedKeys.contains(keyCode) && !consumedKeys.contains(keyCode)) {
+            consumedKeys.add(keyCode);
+            return true;
+        }
+
+        return false;
     }
 
     public boolean isMoving() {

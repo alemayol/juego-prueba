@@ -4,6 +4,7 @@ import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.uprojects.core.ArreglarCablesTarea;
+import com.uprojects.core.SalaVotacion;
 import com.uprojects.core.Tarea;
 import com.uprojects.entities.RemotePlayer;
 import com.uprojects.helpers.CollisionChecker;
@@ -229,7 +230,7 @@ public class GamePane extends Pane {
         this.mapHandler.loadMapFile("lobby.tmx");
         this.mapaActual = "lobby.tmx";
         this.collisionChecker = new CollisionChecker(mapHandler);
-        this.tareasPorHacer = mapHandler.calcularPosicionTareas();
+        this.tareasPorHacer = mapHandler.calcularPosicionTareas(false);
 
 
         inicializarTareaUIs();
@@ -549,17 +550,21 @@ public class GamePane extends Pane {
     }
 
     public void abrirSalaVotacion() {
-        Tarea salaVotacion = null;
+        SalaVotacion salaVotacion = null;
 
         for (Tarea tarea : tareasPorHacer) {
             if (tarea.getNombre().equals("Sala-de-Votacion")) {
-                salaVotacion = tarea;
+                salaVotacion = (SalaVotacion) tarea;
                 break;
             }
         }
 
         if (salaVotacion != null && salaVotacion.getUiPane() instanceof VotacionPane votacionPane) {
             HashMap<Integer, String> jugadoresVivos = new HashMap<>();
+
+            if (!localPlayer.wasKilled()) {
+                jugadoresVivos.put(localID, localPlayer.getNombre());
+            }
 
 
             for (java.util.Map.Entry<Integer, RemotePlayer> entry : jugadoresRemotos.entrySet()) {
@@ -575,7 +580,9 @@ public class GamePane extends Pane {
             votacionPane.configurar(jugadoresVivos, localID, this::jugadorSaltaVoto, this::jugadorEjerceVoto);
         }
 
-        abrirTarea(salaVotacion);
+        if (salaVotacion != null) {
+            abrirTarea(salaVotacion);
+        }
 
     }
 
@@ -638,7 +645,7 @@ public class GamePane extends Pane {
         // Cargamos el nuevo mapa
         this.mapHandler.loadMapFile(datos.mapa);
         // Si es impostor, no tiene que hacer tareas
-        this.tareasPorHacer = !this.impostor ? mapHandler.calcularPosicionTareas() : new ArrayList<Tarea>();
+        this.tareasPorHacer = mapHandler.calcularPosicionTareas(this.impostor);
         this.tareasRestantes = datos.tareasRestantes;
         this.totalTareasGlobales = datos.tareasRestantes; // Inicialmente son iguales pero solo vamos a restar a tareas restantes
 
@@ -724,17 +731,15 @@ public class GamePane extends Pane {
                     keyH.resetPressedKeys();
 
 
-                    Platform.runLater(() -> {
-                        long tiempoActual = System.currentTimeMillis();
-                        long tiempoCongelado = tiempoActual + 2000; // 2 segundos
+                    long tiempoActual = System.currentTimeMillis();
+                    long tiempoCongelado = tiempoActual + 2000; // 2 segundos
 
-                        while (tiempoActual < tiempoCongelado) {
-                            tiempoActual = System.currentTimeMillis();
-                        }
+                    while (tiempoActual < tiempoCongelado) {
+                        tiempoActual = System.currentTimeMillis();
+                    }
 
-                        localPlayer.setPaused(false);
-                        localPlayer.setAccion("idle");
-                    });
+                    localPlayer.setPaused(false);
+                    localPlayer.setAccion("idle");
 
 
                 }

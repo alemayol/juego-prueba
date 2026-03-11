@@ -96,56 +96,6 @@ public class VotacionPane extends TareaPane {
     public void actualizarUI() {
 
     }
-    /*
-    public void showSala(HashMap<Integer, String> jugadores, int localID, Runnable onSkip, java.util.function.Consumer<Integer> onVotar) {
 
-        this.onSaltarVoto = onSkip;
-        this.onVotar = onVotar;
-
-        this.setStyle("-fx-background-color: #2c3e50; -fx-padding: 20; -fx-border-color: #e74c3c; -fx-border-width: 5;");
-        this.setAlignment(Pos.CENTER);
-        this.setSpacing(15);
-        this.setPrefSize(400, 500);
-
-        Label titulo = new Label("SALA DE VOTACIÓN");
-        titulo.setTextFill(Color.WHITE);
-        titulo.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
-        this.getChildren().add(titulo);
-
-        for (Integer id : jugadores.keySet()) {
-            HBox fila = new HBox(10);
-            fila.setAlignment(Pos.CENTER);
-
-            String nombre = jugadores.get(id);
-            if (id == localID) nombre += " (Tú)";
-
-            Label lblNombre = new Label(nombre);
-            lblNombre.setTextFill(Color.WHITE);
-            lblNombre.setPrefWidth(200);
-
-            Button btnVotar = new Button("Votar");
-            btnVotar.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white;");
-            btnVotar.setOnAction(e -> emitirVoto(id));
-
-            fila.getChildren().addAll(lblNombre, btnVotar);
-            this.getChildren().add(fila);
-        }
-
-        Button btnSaltarVoto = new Button("Saltar Voto");
-        btnSaltarVoto.setStyle("-fx-background-color: #7f8c8d; -fx-text-fill: white; -fx-font-size: 16px;");
-        btnSaltarVoto.setOnAction(e -> {
-            this.setDisable(true);
-            onSaltarVoto.run();
-        });
-
-        this.getChildren().add(btnSaltarVoto);
-    }
-
-    private void emitirVoto(int idJugador) {
-        this.setDisable(true);
-        onVotar.accept(idJugador);
-    }
-
-     */
 
 }

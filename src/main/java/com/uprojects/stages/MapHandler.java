@@ -3,6 +3,7 @@ package com.uprojects.stages;
 
 import com.esotericsoftware.kryo.io.Input;
 import com.uprojects.core.ArreglarCablesTarea;
+import com.uprojects.core.SalaVotacion;
 import com.uprojects.core.Tarea;
 import com.uprojects.entities.Player;
 import com.uprojects.helpers.TareaFactory;
@@ -221,7 +222,7 @@ public class MapHandler {
     }
 
 
-    public List<Tarea> calcularPosicionTareas() {
+    public List<Tarea> calcularPosicionTareas(boolean esImpostor) {
 
         List<Tarea> estaciones = new ArrayList<>();
         int mapW = map.getWidth();
@@ -244,7 +245,13 @@ public class MapHandler {
 
                                 if (estacion != null) {
 
-                                    estaciones.add(estacion);
+                                    if (esImpostor && estacion instanceof SalaVotacion) {
+
+                                        estaciones.add(estacion);
+                                    } else {
+                                        estaciones.add(estacion);
+                                    }
+
                                 }
 
                             }

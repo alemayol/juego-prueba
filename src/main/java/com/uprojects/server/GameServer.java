@@ -116,6 +116,8 @@ public class GameServer extends Listener {
             if (conexion.getID() == 1 && jugadores.size() >= 2) {
                 if (jugadores.size() >= 6) {
                     this.cantImpostores = 2;
+                } else {
+                    this.cantImpostores = 1;
                 }
                 iniciarJuego(conexion);
             }
@@ -259,14 +261,12 @@ public class GameServer extends Listener {
                             this.tareasRestantes -= tareasPendienteDelElectrocutado;
 
 
-                            if (!juegoIniciado)
-                                return;
-
                             Red.PaqueteRespuestaKill respuestaKill = new Red.PaqueteRespuestaKill();
                             respuestaKill.idJugadorElectrocutado = jugador.id;
                             respuestaKill.tareasRestantes = this.tareasRestantes;
 
                             server.sendToAllTCP(respuestaKill);
+
                             huboEliminacion = true;
                             break; // Terminamos el bucle para que no mate a dos que estaban cerca
 
@@ -274,18 +274,15 @@ public class GameServer extends Listener {
                     }
                 }
 
-                if (!huboEliminacion) {
+                if (huboEliminacion) {
+
+                    verificarFinDeJuego();
+                } else {
 
                     Red.PaqueteRespuestaKill respuestaKill = new Red.PaqueteRespuestaKill();
                     respuestaKill.idJugadorElectrocutado = -1;
                     respuestaKill.tareasRestantes = this.tareasRestantes;
 
-
-                    verificarFinDeJuego();
-
-                    // Verificar juego pone esta variable a falso
-                    if (!juegoIniciado)
-                        return;
 
                     // Se lo enviamos solo al impostor
                     conexion.sendTCP(respuestaKill);
@@ -390,24 +387,26 @@ public class GameServer extends Listener {
     }
 
     private void verificarFinDeJuego() {
-        if (jugadores.isEmpty()) return;
+        if (jugadores.isEmpty() || !juegoIniciado) return;
 
         boolean todosTerminaron = true;
 
         // Calculamos la cantidad de jugadores electrocutados para ver si el impostor gano
-        int jugadoresVivos = jugadores.size() - cantImpostores;
+        int tripulantesVivos = 0;
         boolean debeFinalizarJuego = false;
 
         // Revisamos si algún jugador aún no termina sus tareas
         for (ServerPlayer jugador : jugadores.values()) {
-            if (jugador.tareasCompletadas < jugador.tareasTotales) {
-                todosTerminaron = false;
-                break;
+
+            if (!jugador.impostor && !jugador.killed) {
+                tripulantesVivos++;
             }
 
-            if (jugador.killed) {
-                jugadoresVivos--;
+            if (!jugador.impostor && jugador.tareasCompletadas < jugador.tareasTotales) {
+                todosTerminaron = false;
             }
+
+
         }
 
         // Si el bucle termina y todosTerminaron sigue siendo true, ¡ganaron!
@@ -421,9 +420,19 @@ public class GameServer extends Listener {
 
             return;
 
+        } else if (cantImpostores == 0) {
+
+            System.out.println("¡Han expulsado a todos los impostores! Fin del juego.");
+            Red.PaqueteFinJuego fin = new Red.PaqueteFinJuego();
+            fin.mensajeGanador = "¡VICTORIA DE LOS TRIPULANTES!";
+            server.sendToAllTCP(fin);
+
+            juegoIniciado = false;
+
+            return;
         }
 
-        if (jugadoresVivos < 2 || jugadoresVivos == cantImpostores) {
+        if (tripulantesVivos <= cantImpostores) {
             System.out.println("El Impostor ha ganado");
             Red.PaqueteFinJuego fin = new Red.PaqueteFinJuego();
 
