@@ -25,7 +25,7 @@ public abstract class Entidad {
     protected Rectangle areaSolida;
 
     // Sprites
-    protected Image[] left, right, idleR, idleL, attack, electrocutadoR, electrocutadoL;
+    protected Image[] left, right, idleR, idleL, attackR, attackL, electrocutadoR, electrocutadoL;
     protected Image lastSprite;
     protected String accion, facingTowards;
     protected int spriteCounter = 0;
@@ -44,6 +44,8 @@ public abstract class Entidad {
         this.idleR = new Image[2];
         this.electrocutadoL = new Image[2];
         this.electrocutadoR = new Image[2];
+        this.attackL = new Image[2];
+        this.attackR = new Image[2];
 
         this.accion = "up";
         this.facingTowards = "right";
@@ -80,6 +82,14 @@ public abstract class Entidad {
                 if (this.electrocutadoR != null)
                     this.electrocutadoR[i] = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/units/" + color + "/Derecha/Killed/" + (i + 1) + ".png")));
 
+
+                if (this.attackL != null)
+                    this.attackL[i] = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/units/" + color + "/Izquierda/Attack/" + (i + 1) + ".png")));
+
+
+                if (this.attackR != null)
+                    this.attackR[i] = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/units/" + color + "/Derecha/Attack/" + (i + 1) + ".png")));
+
             }
 
 
@@ -93,10 +103,13 @@ public abstract class Entidad {
     protected void actualizarSprite() {
         spriteCounter++;
 
-        if (spriteCounter > 8) {
+        if (spriteCounter > 12) {
 
             spriteNumber = (spriteNumber + 1) % 2;
             spriteCounter = 0;
+
+            if (this.accion.equals("attacking"))
+                this.accion = "idle";
         }
     }
 
@@ -107,11 +120,11 @@ public abstract class Entidad {
         return switch (accion) {
             case "left" -> left[spriteNumber];
             case "right" -> right[spriteNumber];
-            case "idle-l" -> idleL[spriteNumber];
-            case "idle-r" -> idleR[spriteNumber];
+            case "idle" -> facingTowards.equals("right") ? idleR[spriteNumber] : idleL[spriteNumber];
             case "killed" ->
                     facingTowards.equals("right") ? electrocutadoR[spriteNumber] : electrocutadoL[spriteNumber];
             case "up", "down" -> facingTowards.equals("right") ? right[spriteNumber] : left[spriteNumber];
+            case "attacking" -> facingTowards.equals("right") ? attackR[spriteNumber] : attackL[spriteNumber];
             default -> idleR[spriteNumber];
         };
     }

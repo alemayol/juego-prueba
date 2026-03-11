@@ -127,7 +127,12 @@ public class Player extends Entidad {
 
             actualizarSprite();
         } else {
-            accion = facingTowards.contains("right") ? "idle-r" : "idle-l";
+
+            if (!keyH.isMoving() && !this.accion.equals("attacking")) {
+                this.accion = "idle";
+                actualizarSprite();
+            }
+
 
         }
 

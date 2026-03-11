@@ -701,10 +701,12 @@ public class GamePane extends Pane {
         if (paquete.idJugadorElectrocutado == -1) {
             System.out.println("No se electrocuto a nadie");
             this.tiempoDeUltimaPeticionKill = 0;
+            return;
         }
 
         if (paquete.idJugadorElectrocutado == localID) {
             localPlayer.setKilled(true);
+            localPlayer.setAccion("killed");
             keyH.resetPressedKeys(); // inmobilizamos
             this.tareasRestantes = paquete.tareasRestantes;
             return;
@@ -713,7 +715,13 @@ public class GamePane extends Pane {
         for (RemotePlayer jugadorRemoto : jugadoresRemotos.values()) {
             if (jugadorRemoto.getID() == paquete.idJugadorElectrocutado) {
                 jugadorRemoto.setKilled(true);
+                jugadorRemoto.setAccion("killed");
                 this.tareasRestantes = paquete.tareasRestantes;
+
+                if (impostor) {
+                    localPlayer.setAccion("attacking");
+                    keyH.resetPressedKeys();
+                }
 
                 break;
             }

@@ -233,6 +233,8 @@ public class GameServer extends Listener {
 
                 System.out.println("El impostor solicitó electrocución!");
 
+                boolean huboEliminacion = false;
+
                 for (ServerPlayer jugador : jugadores.values()) {
 
 
@@ -266,9 +268,21 @@ public class GameServer extends Listener {
                             respuestaKill.tareasRestantes = this.tareasRestantes;
 
                             server.sendToAllTCP(respuestaKill);
+                            huboEliminacion = true;
                             break; // Terminamos el bucle para que no mate a dos que estaban cerca
 
                         }
+                    }
+
+                    if (!huboEliminacion) {
+
+                        Red.PaqueteRespuestaKill respuestaKill = new Red.PaqueteRespuestaKill();
+                        respuestaKill.idJugadorElectrocutado = -1;
+                        respuestaKill.tareasRestantes = this.tareasRestantes;
+
+                        // Se lo enviamos solo al impostor
+                        conexion.sendTCP(respuestaKill);
+
                     }
 
                 }
