@@ -60,6 +60,10 @@ public class KeyHandler {
         return pressedKeys.contains(KeyCode.E);
     }
 
+    public boolean electrocutar() {
+        return pressedKeys.contains(KeyCode.F);
+    }
+
     public void resetPressedKeys() {
         this.pressedKeys.clear();
     }

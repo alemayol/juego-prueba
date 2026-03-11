@@ -62,17 +62,21 @@ public class HomeScreen extends ControladorPantalla {
             Red.registrar(cliente.getKryo());
             cliente.start();
 
-            // Como esta creando el lobby, es anfitrion
-            cliente.connect(5000, "localhost", Red.TCP_PORT, Red.UDP_PORT);
 
             Red.PaqueteConexion conexion = new Red.PaqueteConexion();
             //conexion.nombreJugador = "Jugador_" + new Random().nextInt(100);
             conexion.nombreJugador = perfilLocal.getNombre().isEmpty() ? "Jugador_" + new Random().nextInt(100) : perfilLocal.getNombre();
             conexion.colorJugador = perfilLocal.getColor().isEmpty() ? "Amarillo" : perfilLocal.getColor();
+            conexion.idJugador = cliente.getID();
+
+            GamePane lobby = new GamePane(stageManager.scene, cliente, cliente.getID(), true, conexion.nombreJugador, conexion.colorJugador);
+
+            configurarRedListeners(lobby);
+
+            // Como esta creando el lobby, es anfitrion
+            cliente.connect(5000, "localhost", Red.TCP_PORT, Red.UDP_PORT);
             cliente.sendTCP(conexion);
 
-            GamePane lobby = new GamePane(stageManager.scene, cliente, 0, true, conexion.nombreJugador, conexion.colorJugador);
-            configurarRedListeners(lobby);
             stageManager.setRoot(lobby, "Lobby de espera");
 
         } catch (UnknownHostException ex) {
@@ -106,22 +110,21 @@ public class HomeScreen extends ControladorPantalla {
 
                 GamePane lobby = new GamePane(stageManager.scene, cliente, 0, false, perfilLocal.getNombre(), perfilLocal.getColor());
                 configurarRedListeners(lobby);
-                // CONNECT TO THE PROVIDED IP
+                // Nos conectamos a la IP que el usuario proporsiono
                 cliente.connect(5000, ipHost, Red.TCP_PORT, Red.UDP_PORT);
 
                 stageManager.setRoot(lobby, "Lobby");
 
             } catch (IOException ex) {
+                // Enseñamos la alerta al usurario (se puede mejorar la UI... un dia de estos)
                 System.err.println("No se pudo conectar a la IP: " + ipHost);
-                // Idea: Show an error alert in the UI here
-                // STOP AND SHOW ALERT
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Error de Conexión");
                 alert.setHeaderText("No se pudo conectar al Lobby");
                 alert.setContentText("No se encontró ningún servidor en la IP: " + ipHost + "\n\nVerifica que la IP sea correcta y que el host ya haya creado la sala.");
                 alert.showAndWait();
 
-                // Optional: Stop the client thread if it started but failed to connect
+                // Detenemos el cliente porsia habia iniciado
                 if (cliente != null) cliente.stop();
             }
         }
@@ -149,11 +152,6 @@ public class HomeScreen extends ControladorPantalla {
         stageManager.setRoot(configPane, "Configuración de Cuenta");
     }
 
-
-    @FXML
-    public void irAjustes(ActionEvent e) {
-
-    }
 
     @FXML
     public void salirDelJuego(ActionEvent e) {
@@ -184,6 +182,15 @@ public class HomeScreen extends ControladorPantalla {
                         paneActual.cambiarAMapaPrincipal(paquete);
                     });
                 }
+
+                if (objeto instanceof Red.PaqueteActualizarTareasRestantes paquete) {
+                    paneActual.actualizarTareasRestantes(paquete);
+                }
+
+                if (objeto instanceof Red.PaqueteRespuestaKill electrocucion) {
+                    paneActual.manejarElectrocucion(electrocucion);
+                }
+
 
                 if (objeto instanceof Red.PaqueteConexion) {
                     System.out.println("RECIBIDA PAQUETE DE CONEXION");

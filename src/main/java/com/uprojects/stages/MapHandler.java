@@ -27,14 +27,11 @@ import javax.xml.bind.JAXBException;
 public class MapHandler {
 
     private Map map;
-    //private Player player;
     private HashMap<Tile, Image> tileImages;
 
 
     public MapHandler() {
 
-        //this.loadMapFile();
-        //this.player = player1;
         this.tileImages = new HashMap<>();
 
     }
@@ -42,7 +39,6 @@ public class MapHandler {
 
     public void loadMapFile(String mapName) {
 
-        String cwd = System.getProperty("user.dir");
 
         try {
 
@@ -53,17 +49,10 @@ public class MapHandler {
 
             this.map = mapReader.readMap("src/main/resources/maps/" + mapName);
             this.buffToFxImage();
-            //this.map = mapReader.readMap("src/main/resources/maps/lobby.tmx");
 
             if (this.map == null) {
                 System.out.println("MAP NOT LOADED");
-            } else {
-                System.out.println("Map Loaded Successfully!");
-                System.out.println("Dimensions: " + map.getWidth() + "x" + map.getHeight());
-                System.out.println("Layers found: " + map.getLayerCount());
-                System.out.println("Tilesets found: " + map.getTileSets().size());
             }
-
         } catch (IOException | IllegalArgumentException e) {
             e.printStackTrace();
         } catch (JAXBException e) {
@@ -91,9 +80,7 @@ public class MapHandler {
             for (TileSet ts : this.map.getTileSets()) {
 
 
-                System.out.println("Processing TileSet: " + ts.getName());
-
-                // Try getTilebmpFile() first
+                // Intentamos getTilebmpFile() para ver si podemos obtener el path del tileset. Sino lo hardcodeamos con el nombre
                 String imagePath = ts.getTilebmpFile();
 
                 if (imagePath == null) {
@@ -105,7 +92,7 @@ public class MapHandler {
 
                 if (imgSrc == null) {
                     System.out.println("  [ERROR] No se encontró: " + imagePath);
-                    System.out.println("  Available resources: Check src/main/resources/" + imagePath);
+                    System.out.println("  Available resources: Check src/main/resources" + imagePath);
                     tsIndex++;
                     continue;
                 }
@@ -145,15 +132,7 @@ public class MapHandler {
             return null;
         }
 
-        /*
-        int id = tile.getId();
 
-        if (!tileImages.containsKey(id)) {
-            BufferedImage awtImg = (BufferedImage) tile.getImage();
-            Image fxImg = SwingFXUtils.toFXImage(awtImg, null);
-            this.tileImages.put(tile, fxImg);
-        }
-*/
         return this.tileImages.get(tile);
     }
 
@@ -166,9 +145,6 @@ public class MapHandler {
             int tileWidth = map.getTileWidth();
             int tileHeight = map.getTileHeight();
 
-            // Pixeles visibles despues de aplicar zoom
-            //int xVisible = (player.cameraX * 2) / zoom;
-            //int yVisible = (player.cameraY * 2) / zoom;
 
             int xVisible = (int) (gc.getCanvas().getWidth() / zoom) / 2;
             int yVisible = (int) (gc.getCanvas().getHeight() / zoom) / 2;
@@ -187,38 +163,18 @@ public class MapHandler {
 
                     TileLayer tLayer = (TileLayer) layer;
 
-                    // Dimensiones de una capa del mapa
-                    int anchoCapa = layer.getBounds().width;
-                    int altoCapa = layer.getBounds().height;
-
-
-                    //int offsetX = (player.cameraX / zoom) - player.worldX;
-                    //int offsetY = (player.cameraY / zoom) - player.worldY;
-
                     for (int y = filaInicial; y < filaFinal; y++) {
                         for (int x = colInicial; x < colFinal; x++) {
                             Tile singleTile = tLayer.getTileAt(x, y);
-                            //Image img = getFxImage(singleTile);
 
 
                             if (singleTile == null) continue;
-
-
-                            Image img = this.getFxImage(singleTile);
 
 
                             // Posicion absoluta del mundo (pixeles)
                             int posX = x * tileWidth;
                             int posY = y * tileHeight;
 
-                            // Posicion relativa a la camara del jugador
-                            //int screenX = posX - this.player.worldX + this.player.cameraX;
-                            //int screenY = posY - this.player.worldY + this.player.cameraY;
-
-                            // Posicion considerando zoom
-                            //int screenX = posX + offsetX;
-                            //int screenY = posY + offsetY;
-                            // POR HACER: IMPLEMENTAR LOGICA DE COLISIONES Y PROPIEDADES PERSONALIZADAS AQUI
                             boolean isVisible = true;
 
 

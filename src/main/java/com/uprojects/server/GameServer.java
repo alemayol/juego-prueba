@@ -17,8 +17,10 @@ public class GameServer extends Listener {
 
     private Server server;
     private boolean enReunion;
+    private int tareasRestantes;
     private HashMap<Integer, Integer> votos;
     private int votosRecibidos;
+    private int cantImpostores;
     private final int MAX_JUGADORES = 10;
     private final int TCP_PORT = 54555;
     private final int UDP_PORT = 54777;
@@ -112,6 +114,9 @@ public class GameServer extends Listener {
 
         if (paquete instanceof Red.PaquetePedirInicio) {
             if (conexion.getID() == 1 && jugadores.size() >= 2) {
+                if (jugadores.size() >= 6) {
+                    this.cantImpostores = 2;
+                }
                 iniciarJuego(conexion);
             }
         }
@@ -151,12 +156,19 @@ public class GameServer extends Listener {
         }
 
         // 3. Un jugador completa una tarea (TCP)
-        if (paquete instanceof Red.PaqueteTareaCompletada) {
-            ServerPlayer jugador = jugadores.get(conexion.getID());
+        if (paquete instanceof Red.PaqueteTareaCompletada tareaCompletada) {
+            ServerPlayer jugador = jugadores.get(tareaCompletada.idJugador);
             if (jugador != null) {
                 jugador.tareasCompletadas++;
+                this.tareasRestantes--;
+
                 System.out.println(jugador.nombre + " completó una tarea (" + jugador.tareasCompletadas + "/" + jugador.tareasTotales + ")");
                 verificarFinDeJuego();
+
+                Red.PaqueteActualizarTareasRestantes tareas = new Red.PaqueteActualizarTareasRestantes();
+                tareas.tareasRestantes = this.tareasRestantes;
+
+                server.sendToAllTCP(tareas);
             }
         }
 
@@ -195,6 +207,63 @@ public class GameServer extends Listener {
             }
         }
 
+        if (paquete instanceof Red.PaqueteSolicitarKill kill) {
+            ServerPlayer serverPlayer = jugadores.get(kill.idImpostor);
+
+            System.out.println("Llegó solicitud de kill por parte de -> " + serverPlayer.nombre);
+
+            if (serverPlayer != null && serverPlayer.impostor) {
+
+                System.out.println("El impostor solicitó electrocución!");
+
+                for (ServerPlayer jugador : jugadores.values()) {
+
+                    System.out.println("Analisis de jugador");
+                    System.out.println("Nombre: " + jugador.nombre);
+                    System.out.println("Es impostor: " + jugador.impostor);
+                    System.out.println("Tiene el mismo id: " + (jugador.id == serverPlayer.id ? "Si" : "No"));
+                    System.out.println("Esta muerto: " + jugador.killed);
+
+                    if (!jugador.impostor && jugador.id != serverPlayer.id && !jugador.killed) {
+                        // Calculamos el centro del sprite. 32 porque los personajes son de 32x32 pixeles. Quizas al comienzo del juego podemos pasar el tilesize al servidor y manejarlo asi
+                        double victimaX = jugador.x + (32 / 2.0);
+                        double victimaY = jugador.y + (32 / 2.0);
+
+                        double impostorX = serverPlayer.x + (32 / 2.0);
+                        double impostorY = serverPlayer.y + (32 / 2.0);
+
+                        // Distancia euclidiana, o algo asi
+                        double distancia = Math.hypot(victimaX - impostorX, victimaY - impostorY);
+                        double rango = 45.0;
+
+
+                        System.out.println("Distancia: " + distancia + " -> Rango: " + rango);
+                        if (distancia <= rango) {
+                            System.out.println("Kill confirmada. " + serverPlayer.nombre + " ha electrocutado a " + jugador.nombre);
+                            jugador.killed = true;
+                            int tareasPendienteDelElectrocutado = jugador.tareasTotales - jugador.tareasCompletadas;
+                            this.tareasRestantes -= tareasPendienteDelElectrocutado;
+
+                            verificarFinDeJuego();
+
+                            if (!juegoIniciado)
+                                return;
+
+                            Red.PaqueteRespuestaKill respuestaKill = new Red.PaqueteRespuestaKill();
+                            respuestaKill.idJugadorElectrocutado = jugador.id;
+                            respuestaKill.tareasRestantes = this.tareasRestantes;
+
+                            server.sendToAllTCP(respuestaKill);
+                            break; // Terminamos el bucle para que no mate a dos que estaban cerca
+
+                        }
+                    }
+
+                }
+            }
+
+        }
+
     }
 
     private void procesarVotacion() {
@@ -228,7 +297,12 @@ public class GameServer extends Listener {
             resultado.empate = false;
             resultado.idExpulsado = idMax;
             ServerPlayer expulsado = jugadores.get(idMax);
-            if (expulsado != null) expulsado.killed = true;
+            if (expulsado != null) {
+                expulsado.killed = true;
+                if (expulsado.impostor) {
+                    cantImpostores--;
+                }
+            }
         }
 
         server.sendToAllTCP(resultado);
@@ -246,8 +320,14 @@ public class GameServer extends Listener {
 
         List<Integer> idJugadores = new ArrayList<>(jugadores.keySet());
 
+        // 4 tareas por jugador, sin contar a los impostores
+        this.tareasRestantes = (jugadores.size() - cantImpostores) * 4;
+
         Collections.shuffle(idJugadores);
-        int idImpostor = idJugadores.get(0); // Como ya los sorteamos, simplemente escogemos el primero
+        // Como ya los barajamos, simplemente escogemos los que queramos
+        int idImpostor1 = idJugadores.get(0);
+        int idImpostor2 = idJugadores.get(1);
+
 
         // Se lo mandamos a cada conexion, es decir, a cada jugador conectado al servidor
         //for (Connection conexion : server.getConnections()) {
@@ -256,8 +336,21 @@ public class GameServer extends Listener {
         // Por ahora lo mandamos a la biblioteca, tenemos que calcular esto mejor al tener dos mapas
         iniciarJuego.inicioX = 512;
         iniciarJuego.inicioY = 384;
+        iniciarJuego.tareasRestantes = this.tareasRestantes;
 
-        iniciarJuego.esImpostor = conexion.getID() == idImpostor;
+        if (cantImpostores == 2) {
+
+            iniciarJuego.idImpostor1 = idImpostor1;
+            iniciarJuego.idImpostor2 = idImpostor2;
+            jugadores.get(idImpostor1).impostor = true;
+            jugadores.get(idImpostor2).impostor = true;
+        } else {
+
+            iniciarJuego.idImpostor1 = idImpostor1;
+            jugadores.get(idImpostor1).impostor = true;
+            iniciarJuego.idImpostor2 = -1; // Para que ninguno coincida
+        }
+
         server.sendToAllTCP(iniciarJuego);
         //}
 
@@ -303,7 +396,7 @@ public class GameServer extends Listener {
             fin.mensajeGanador = "¡VICTORIA DE LOS IMPOSTORES!";
             server.sendToAllTCP(fin);
 
-            // Aquí podrías reiniciar las variables para una nueva partida
+            // Aquí podemos reiniciar las variables para una nueva partida
             juegoIniciado = false;
         }
     }
@@ -317,5 +410,4 @@ public class GameServer extends Listener {
     }
 
 }
-
 

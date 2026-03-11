@@ -49,9 +49,6 @@ public abstract class Tarea {
                     this.worldX,
                     this.worldY - 8
             );
-        } else {
-            gc.setStroke(Color.RED); // Red if too far
-            gc.setLineWidth(1);
         }
 
         // 2. Draw the bounding box
@@ -102,8 +99,7 @@ public abstract class Tarea {
         return this.completada;
     }
 
-    public void actualizarTarea(double progreso) {
-    }
+    public abstract void actualizarTarea(double progreso);
 
     public void reset() {
         this.completada = false;

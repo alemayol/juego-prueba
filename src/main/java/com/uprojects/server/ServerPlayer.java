@@ -12,6 +12,8 @@ public class ServerPlayer {
     public String accion, facingTowards;
     public int spriteCounter = 0;
     public int spriteNumber = 1;
+    public boolean impostor;
+    public long ultimaKill;
 
     public ServerPlayer(int id, String nombre, String color) {
         this.id = id;
@@ -20,11 +22,16 @@ public class ServerPlayer {
         this.color = color;
         this.accion = "up";
         this.facingTowards = "left";
+        this.impostor = false;
     }
 
     public void setTargets(double worldX, double worldY) {
         this.x = worldX;
         this.y = worldY;
+    }
+
+    public void setImpostor(boolean esImpostor) {
+        this.impostor = esImpostor;
     }
 
 }

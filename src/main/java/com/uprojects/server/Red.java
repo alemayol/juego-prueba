@@ -13,6 +13,7 @@ public class Red {
         kryo.register(PaqueteIniciarJuego.class);
         kryo.register(PaqueteActualizarJugador.class);
         kryo.register(PaqueteTareaCompletada.class);
+        kryo.register(PaqueteActualizarTareasRestantes.class);
         kryo.register(PaqueteFinJuego.class);
         kryo.register(java.util.ArrayList.class);
         kryo.register(PaqueteLobbyInfo.class);
@@ -22,6 +23,8 @@ public class Red {
         kryo.register(PaqueteLlamarReunion.class);
         kryo.register(PaqueteVoto.class);
         kryo.register(PaqueteResultadoVotacion.class);
+        kryo.register(PaqueteSolicitarKill.class);
+        kryo.register(PaqueteRespuestaKill.class);
     }
 
     // Clases que viajan por la red
@@ -50,7 +53,9 @@ public class Red {
         public int inicioX;
         public int inicioY;
         public String mapa; // path -> mapa1.tmx
-        public boolean esImpostor;
+        public int idImpostor1;
+        public int idImpostor2;
+        public int tareasRestantes;
     }
 
     public static class PaqueteActualizarJugador {
@@ -71,6 +76,19 @@ public class Red {
     public static class PaqueteTareaCompletada {
         public int idJugador;
         // Puedes añadir el ID de la tarea si necesitas saber cuál hizo
+    }
+
+    public static class PaqueteActualizarTareasRestantes {
+        public int tareasRestantes;
+    }
+
+    public static class PaqueteSolicitarKill {
+        public int idImpostor;
+    }
+
+    public static class PaqueteRespuestaKill {
+        public int idJugadorElectrocutado;
+        public int tareasRestantes;
     }
 
     public static class PaqueteFinJuego {

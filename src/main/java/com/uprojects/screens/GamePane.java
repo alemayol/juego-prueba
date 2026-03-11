@@ -40,6 +40,7 @@ public class GamePane extends Pane {
     // Configuracion de cliente para servidor
     private Client cliente;
     private HashMap<Integer, RemotePlayer> jugadoresRemotos;
+    private int tareasRestantes;
 
     // Config Pantalla
     private final int originalTileSize = 32; // Eje: 16x16 tiles
@@ -207,19 +208,12 @@ public class GamePane extends Pane {
         }
 
         this.localPlayer = new Player(keyH, (int) canvas.getWidth(), (int) canvas.getHeight(), tileSize, localPlayerName, localPlayerColor);
-        //this.jugadoresRemotos.put();
         this.mapHandler = new MapHandler();
         this.mapHandler.loadMapFile("lobby.tmx");
         this.mapaActual = "lobby.tmx";
         this.collisionChecker = new CollisionChecker(mapHandler);
         this.tareasPorHacer = mapHandler.calcularPosicionTareas();
 
-        System.out.println("=== DEBUG: Tasks Created ===");
-        System.out.println("Total tasks: " + tareasPorHacer.size());
-        for (Tarea t : tareasPorHacer) {
-            System.out.println("Task: " + t.getNombre() + " at (" + t.getWorldX() + ", " + t.getWorldY() + ")");
-        }
-        System.out.println("================================");
 
         inicializarTareaUIs();
 
@@ -286,6 +280,11 @@ public class GamePane extends Pane {
                 abrirTareaActual();
             }
         }
+
+        if (keyH.electrocutar() && this.impostor) {
+            solicitarKill();
+        }
+
         for (RemotePlayer jugadorExterno : jugadoresRemotos.values()) {
             jugadorExterno.updatePosition(null);
         }
@@ -341,6 +340,14 @@ public class GamePane extends Pane {
 
     }
 
+    public void solicitarKill() {
+        Red.PaqueteSolicitarKill solicitarKill = new Red.PaqueteSolicitarKill();
+        solicitarKill.idImpostor = localID;
+
+        System.out.println("Solicitando kill");
+        cliente.sendTCP(solicitarKill);
+    }
+
     public void agregarJugadorRemoto(Red.PaqueteConexion datos) {
         // Si el ID soy yo mismo, no me agrego a la lista de "remotos"
         System.out.println("Creando jugador remoto");
@@ -359,69 +366,22 @@ public class GamePane extends Pane {
             RemotePlayer nuevoRemoto = new RemotePlayer(
                     this.tileSize,
                     datos.nombreJugador,
-                    "Amarillo"
+                    datos.colorJugador
             );
 
             // Lo guardamos en el mapa para que el update() y draw() lo procesen
+            nuevoRemoto.setId(datos.idJugador);
             nuevoRemoto.setAccion("up");
             nuevoRemoto.setFacingTowards("right");
             jugadoresRemotos.put(datos.idJugador, nuevoRemoto);
         });
     }
 
-    public void conectarCliente(String ip) throws IOException {
-        cliente = new Client();
-        Red.registrar(cliente.getKryo());
-        cliente.start();
-        // 5 segundos de timeout
-        cliente.connect(5000, ip, Red.TCP_PORT, Red.UDP_PORT);
-
-        cliente.addListener(new Listener() {
-            @Override
-            public void received(Connection conexion, Object object) {
-                if (object instanceof Red.PaqueteActualizarJugador paquete) {
-                    if (paquete.idJugador == localID)
-                        return;
-
-                    Platform.runLater(() -> {
-                        RemotePlayer jugadorExterno = jugadoresRemotos.get(paquete.idJugador);
-
-                        // Si no existe localmente, creamos al nuevo jugador externo
-                        if (jugadorExterno == null) {
-                            jugadorExterno = new RemotePlayer(tileSize, paquete.nombre, paquete.color);
-                            jugadoresRemotos.put(paquete.idJugador, jugadorExterno);
-                        }
-
-                        // Actualizamos su posicion para que todos los demas jugadores puedan renderizarlo
-                        jugadorExterno.updateFromNetwork(paquete.x, paquete.y, paquete.accion);
-
-                    });
-                }
-
-                if (object instanceof Red.PaqueteIniciarJuego paquete) {
-                    mapHandler.loadMapFile(paquete.mapa);
-
-                    // Enviamos a todos los jugadores al mismo lugar
-                    localPlayer.setWorldPosition(paquete.inicioX, paquete.inicioY);
-
-                    for (RemotePlayer jugadorExt : jugadoresRemotos.values()) {
-                        jugadorExt.setTargets(paquete.inicioX, paquete.inicioY);
-                    }
-
-                }
-            }
-        });
-    }
-
 
     private void inicializarTareaUIs() {
-        System.out.println("=== Initializing Task UIs ===");
-        System.out.println("Tasks to process: " + tareasPorHacer.size());
         for (Tarea tarea : tareasPorHacer) {
-            System.out.println("Processing task: " + tarea.getNombre());
-            System.out.println("  -> Task is ArreglarCablesTarea, loading FXML...");
+            //System.out.println("Processing task: " + tarea.getNombre());
             try {
-                System.out.println("  -> Creating FXMLLoader...");
 
                 TareaPane ui = tarea.crearUI();
 
@@ -445,11 +405,6 @@ public class GamePane extends Pane {
 
                 tarea.setUiPane(ui);
 
-                System.out.println("Task UI initialized successfully for: " + tarea.getNombre());
-
-
-                System.out.println("Total tasks: " + tareasPorHacer.size());
-                System.out.println("Task UI loaded: " + (tarea.getUiPane() != null));
 
             } catch (Exception e) {
                 System.err.println("ERROR loading task UI:");
@@ -463,7 +418,6 @@ public class GamePane extends Pane {
 
         for (Tarea tarea : tareasPorHacer) {
             if (!tarea.fueCompletada() && tarea.getJugadorCerca()) {
-                System.out.println("Abriendo tarea -> " + tarea.getNombre());
 
                 if (tarea.getNombre().equals("Sala-de-Votacion")) {
                     Red.PaqueteLlamarReunion reunion = new Red.PaqueteLlamarReunion();
@@ -480,9 +434,6 @@ public class GamePane extends Pane {
 
     private void abrirTarea(Tarea tarea) {
 
-        System.out.println("=== Opening Task ===");
-        System.out.println("Task: " + tarea.getNombre());
-        System.out.println("tarea.getUiPane() is null: " + (tarea.getUiPane() == null));
 
         this.tareaActual = tarea;
 
@@ -527,18 +478,16 @@ public class GamePane extends Pane {
         if (salaVotacion != null && salaVotacion.getUiPane() instanceof VotacionPane votacionPane) {
             HashMap<Integer, String> jugadoresVivos = new HashMap<>();
 
-            /*
-            if (!localPlayer.wasKilled())
-                jugadoresVivos.put(localID, localPlayer.getNombre());
-             */
 
-            for (RemotePlayer remotePlayer : jugadoresRemotos.values()) {
-                System.out.println("Considering " + remotePlayer.getNombre() + " for pool of voting");
+            for (java.util.Map.Entry<Integer, RemotePlayer> entry : jugadoresRemotos.entrySet()) {
+                RemotePlayer remotePlayer = entry.getValue();
+
                 if (!remotePlayer.wasKilled()) {
-                    System.out.println("Adding " + remotePlayer.getNombre() + " to pool of voting");
-                    jugadoresVivos.put(remotePlayer.getID(), remotePlayer.getNombre());
+                    jugadoresVivos.put(entry.getKey(), remotePlayer.getNombre());
                 }
+
             }
+
 
             votacionPane.configurar(jugadoresVivos, localID, this::jugadorSaltaVoto, this::jugadorEjerceVoto);
         }
@@ -594,10 +543,10 @@ public class GamePane extends Pane {
 
     public void cambiarAMapaPrincipal(Red.PaqueteIniciarJuego datos) {
 
-        this.impostor = datos.esImpostor;
+        this.impostor = localID == datos.idImpostor1 || localID == datos.idImpostor2;
 
         if (this.impostor) {
-            System.out.println("ERES EL IMPOSTOR");
+            System.out.println("-------------- ERES EL IMPOSTOR ------------------");
         }
 
         // Ocultamos la ventana del lobby
@@ -605,17 +554,12 @@ public class GamePane extends Pane {
 
         // Cargamos el nuevo mapa
         this.mapHandler.loadMapFile(datos.mapa);
-        this.tareasPorHacer = mapHandler.calcularPosicionTareas();
+        // Si es impostor, no tiene que hacer tareas
+        this.tareasPorHacer = !this.impostor ? mapHandler.calcularPosicionTareas() : new ArrayList<Tarea>();
+        this.tareasRestantes = datos.tareasRestantes;
 
 
         inicializarTareaUIs();
-
-        System.out.println("=== DEBUG: Tasks Created ===");
-        System.out.println("Total tasks: " + tareasPorHacer.size());
-        for (Tarea t : tareasPorHacer) {
-            System.out.println("Task: " + t.getNombre() + " at (" + t.getWorldX() + ", " + t.getWorldY() + ")");
-        }
-        System.out.println("================================");
 
 
         // Enviamos a todos los jugadores a la biblioteca (debemos calcular esto mejor, por ahora se queda asi)
@@ -652,19 +596,30 @@ public class GamePane extends Pane {
             remotePlayer.setFacingTowards(status.facingTowards);
         }
 
-        /*
-        for (RemotePlayer remotePlayer : jugadoresRemotos.values()) {
 
-            if (status.idJugador == remotePlayer.getID()) {
-                // Actualizamos todas sus propiedades
-                remotePlayer.setTargets(status.x, status.y);
-                remotePlayer.setAccion(status.accion);
-                remotePlayer.setFacingTowards(status.facingTowards);
+    }
 
-            }
+    // Actualizamos la variable e UI de progreso para que el jugador sepa cuanto falta
+    public void actualizarTareasRestantes(Red.PaqueteActualizarTareasRestantes datos) {
+        this.tareasRestantes = datos.tareasRestantes;
+    }
+
+    public void manejarElectrocucion(Red.PaqueteRespuestaKill paquete) {
+
+        if (paquete.idJugadorElectrocutado == localID) {
+            localPlayer.setKilled(true);
+            keyH.resetPressedKeys(); // inmobilizamos
+            this.tareasRestantes = paquete.tareasRestantes;
+            return;
         }
 
-         */
+        for (RemotePlayer jugadorRemoto : jugadoresRemotos.values()) {
+            if (jugadorRemoto.getID() == paquete.idJugadorElectrocutado) {
+                jugadorRemoto.setKilled(true);
+                this.tareasRestantes = paquete.tareasRestantes;
+                break;
+            }
+        }
     }
 
     public void ocultarLobbyUI() {

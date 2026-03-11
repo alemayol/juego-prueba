@@ -49,8 +49,6 @@ public class VotacionPane extends TareaPane {
             HBox fila = new HBox(15);
             fila.setAlignment(Pos.CENTER);
 
-            System.out.println("ID -> " + id);
-            System.out.println("Local Player ID -> " + localID);
 
             String nombre = jugadores.get(id);
             //if (id == localID) nombre += " (Tú)";

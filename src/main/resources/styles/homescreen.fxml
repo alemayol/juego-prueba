@@ -51,7 +51,7 @@
         </graphic>
     </Button>
 
-    <Button styleClass="boton-ajustes" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0" onAction="#irAjustes">
+    <Button styleClass="boton-ajustes" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0" onAction="#cuentaJugador">
         <graphic>
             <ImageView fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
                 <image>
