@@ -149,7 +149,7 @@ public class Player extends Entidad {
         lastSprite = sprite;
 
 
-        // Depending on the current direction we draw the respective sprite
+        // Lo dibujamos teniendo en cuenta su centro, por eso dividimos su tileSize
         gc.drawImage(sprite, worldX - (double) (tileSize / 2), worldY - (double) (tileSize / 2));
     }
 

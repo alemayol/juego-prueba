@@ -14,6 +14,7 @@ import com.uprojects.server.GameServer;
 import com.uprojects.server.Red;
 import com.uprojects.stages.MapHandler;
 import com.uprojects.ui.ArreglarCablesPane;
+import com.uprojects.ui.DuctoPane;
 import com.uprojects.ui.TareaPane;
 import com.uprojects.ui.VotacionPane;
 import javafx.animation.AnimationTimer;
@@ -475,6 +476,10 @@ public class GamePane extends Pane {
                     cerrarTareaActual();
                 });
 
+                if (ui instanceof DuctoPane ducto) {
+                    ducto.configurar(() -> viajarAlSiguienteDucto(tarea));
+                }
+
                 ui.setOnTareaCompletada(() -> {
 
                     System.out.println("Tarea completada!");
@@ -632,6 +637,29 @@ public class GamePane extends Pane {
     public int getTileSize() {
         return this.tileSize;
     }
+
+    private void viajarAlSiguienteDucto(Tarea ductoActual) {
+        List<Tarea> listaDuctos = new ArrayList<>();
+
+        for (Tarea t : tareasPorHacer) {
+            if (t.getNombre().equals("Ducto")) {
+                listaDuctos.add(t);
+            }
+        }
+
+        if (listaDuctos.size() > 1) {
+            int indiceActual = listaDuctos.indexOf(ductoActual);
+            int siguienteIndice = (indiceActual + 1) % listaDuctos.size();
+            Tarea siguienteDucto = listaDuctos.get(siguienteIndice);
+
+            // Teletransportar al jugador al centro del siguiente ducto
+            localPlayer.setWorldPosition(siguienteDucto.getWorldX() - 16, siguienteDucto.getWorldY() - 16);
+
+            // Cerramos la pantalla del ducto
+            cerrarTareaActual();
+        }
+    }
+
 
     public void cambiarAMapaPrincipal(Red.PaqueteIniciarJuego datos) {
 

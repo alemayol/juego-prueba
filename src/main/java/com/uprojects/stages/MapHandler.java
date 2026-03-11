@@ -3,6 +3,7 @@ package com.uprojects.stages;
 
 import com.esotericsoftware.kryo.io.Input;
 import com.uprojects.core.ArreglarCablesTarea;
+import com.uprojects.core.DuctoTarea;
 import com.uprojects.core.SalaVotacion;
 import com.uprojects.core.Tarea;
 import com.uprojects.entities.Player;
@@ -245,10 +246,9 @@ public class MapHandler {
 
                                 if (estacion != null) {
 
-                                    if (esImpostor && estacion instanceof SalaVotacion) {
-
+                                    if (esImpostor && (estacion instanceof SalaVotacion || estacion instanceof DuctoTarea)) {
                                         estaciones.add(estacion);
-                                    } else {
+                                    } else if (!esImpostor && !(estacion instanceof DuctoTarea)) {
                                         estaciones.add(estacion);
                                     }
 

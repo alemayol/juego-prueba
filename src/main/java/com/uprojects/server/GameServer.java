@@ -412,7 +412,7 @@ public class GameServer extends Listener {
         // Se lo mandamos a cada conexion, es decir, a cada jugador conectado al servidor
         //for (Connection conexion : server.getConnections()) {
         Red.PaqueteIniciarJuego iniciarJuego = new Red.PaqueteIniciarJuego();
-        iniciarJuego.mapa = "mapa.tmx";
+        iniciarJuego.mapa = "mapa1.tmx";
         // Por ahora lo mandamos a la biblioteca, tenemos que calcular esto mejor al tener dos mapas
         iniciarJuego.inicioX = 512;
         iniciarJuego.inicioY = 384;

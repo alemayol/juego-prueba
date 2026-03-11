@@ -21,6 +21,9 @@ public class TareaFactory {
             case "votacion" -> {
                 return new SalaVotacion(worldX, worldY, tareaWidth, tareaHeight);
             }
+            case "ducto" -> {
+                return new DuctoTarea(worldX, worldY, tareaWidth, tareaHeight);
+            }
             default -> {
                 return null;
             }
