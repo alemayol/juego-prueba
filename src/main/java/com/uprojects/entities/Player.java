@@ -45,6 +45,7 @@ public class Player extends Entidad {
         this.accion = "right";
         this.facingTowards = "right";
         this.colision = false;
+        this.oculto = false;
     }
 
     public void asignarTareas(List<Tarea> tareas) {
@@ -54,7 +55,7 @@ public class Player extends Entidad {
     public void updatePosition(CollisionChecker collisionChecker) {
 
 
-        if (paused || killed) {
+        if (paused || killed || oculto) {
             return;
         }
 
@@ -140,6 +141,8 @@ public class Player extends Entidad {
 
     public void draw(GraphicsContext gc) {
 
+        if (oculto)
+            return;
 
         Image sprite = lastSprite;
 

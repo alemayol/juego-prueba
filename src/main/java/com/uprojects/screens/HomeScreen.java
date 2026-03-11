@@ -266,6 +266,7 @@ public class HomeScreen extends ControladorPantalla {
                         Platform.runLater(() -> {
                             paneActual.getLocalPlayer().setColor(paquete.colorJugador); // You need to create this method in Player/Entidad
                             paneActual.getLocalPlayer().cargarSprites(paquete.colorJugador);
+                            paneActual.getLocalPlayer().setOculto(false);
                         });
                     } else {
 

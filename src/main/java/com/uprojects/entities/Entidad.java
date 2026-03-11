@@ -13,7 +13,7 @@ public abstract class Entidad {
     //Estado de la entidad
     protected String nombre, color;
     protected int ID;
-    protected boolean paused, killed;
+    protected boolean paused, killed, oculto;
     protected boolean colision;
     protected int tareasTotales = 4;
     protected int tareasCompletadas = 0;
@@ -50,6 +50,9 @@ public abstract class Entidad {
 
         this.accion = "up";
         this.facingTowards = "right";
+        this.oculto = false;
+        this.paused = false;
+        this.killed = false;
 
         cargarSprites(color);
     }
@@ -203,5 +206,13 @@ public abstract class Entidad {
 
     public void setPaused(boolean pausado) {
         this.paused = pausado;
+    }
+
+    public boolean isOculto() {
+        return oculto;
+    }
+
+    public void setOculto(boolean oculto) {
+        this.oculto = oculto;
     }
 }

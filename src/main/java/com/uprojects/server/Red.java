@@ -69,6 +69,7 @@ public class Red {
         public String facingTowards;
         public int spriteNumber;
         public boolean killed;
+        public boolean oculto;
     }
 
     public static class PaqueteRemoverJugador {

@@ -10,6 +10,7 @@ public class DuctoPane extends TareaPane {
 
     private VBox contenedor;
     private Runnable onViajar;
+    private Runnable onSalir;
 
     public DuctoPane() {
         super();
@@ -29,14 +30,24 @@ public class DuctoPane extends TareaPane {
 
         Button btnSalir = new Button("Salir del ducto");
         btnSalir.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white; -fx-cursor: hand;");
-        btnSalir.setOnAction(e -> ocultarTarea());
+        btnSalir.setOnAction(e -> {
+            if (onSalir != null) {
+                onSalir.run();
+            }
+            ocultarTarea();
+        });
 
         contenedor.getChildren().addAll(titulo, btnViajar, btnSalir);
         this.getChildren().add(contenedor);
     }
 
-    public void configurar(Runnable onViajar) {
+    public void configurar(Runnable onViajar, Runnable onSalir) {
         this.onViajar = onViajar;
+        this.onSalir = onSalir;
+    }
+
+    public void setOnSalir(Runnable onSalir) {
+        this.onSalir = onSalir;
     }
 
     @Override

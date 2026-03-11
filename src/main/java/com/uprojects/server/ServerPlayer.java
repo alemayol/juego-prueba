@@ -8,7 +8,7 @@ public class ServerPlayer {
     public double x, y;
     public int tareasCompletadas = 0;
     public int tareasTotales = 4; // Maximo de tareas del jugador
-    public boolean killed;
+    public boolean killed, oculto;
     public String accion, facingTowards;
     public int spriteCounter = 0;
     public int spriteNumber = 1;
@@ -24,6 +24,7 @@ public class ServerPlayer {
         this.facingTowards = "left";
         this.impostor = false;
         this.tiempoUltimaKill = 0;
+        this.oculto = false;
     }
 
     public void setTargets(double worldX, double worldY) {
@@ -35,4 +36,7 @@ public class ServerPlayer {
         this.impostor = esImpostor;
     }
 
+    public void setOculto(boolean oculto) {
+        this.oculto = oculto;
+    }
 }

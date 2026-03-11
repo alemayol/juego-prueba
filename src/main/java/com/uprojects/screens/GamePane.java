@@ -4,6 +4,7 @@ import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.uprojects.core.ArreglarCablesTarea;
+import com.uprojects.core.DuctoTarea;
 import com.uprojects.core.SalaVotacion;
 import com.uprojects.core.Tarea;
 import com.uprojects.entities.RemotePlayer;
@@ -71,6 +72,7 @@ public class GamePane extends Pane {
     private boolean impostor = false;
     private long tiempoDeUltimaPeticionKill = 0;
     private final long enfriamientoKill = 15000; // 15 segundos == 15000 ms
+    private Tarea ductoEnUso;
 
     // Canvas JavaFx
     public final Canvas canvas;
@@ -117,6 +119,7 @@ public class GamePane extends Pane {
         this.localPlayerName = nombreJugadorLocal;
         this.localPlayerColor = colorJugadorLocal;
 
+
         if (servidor != null) {
             this.servidorLocal = servidor;
         } else {
@@ -153,6 +156,7 @@ public class GamePane extends Pane {
         this.jugadoresRemotos = new HashMap<>();
         this.tareaActual = null;
         this.tareasPorHacer = new ArrayList<>();
+        this.ductoEnUso = null;
         //this.taresPorHacer.add(new ArreglarCablesTarea());
 
 
@@ -282,13 +286,7 @@ public class GamePane extends Pane {
 
 
         localPlayer.updatePosition(collisionChecker);
-        Red.PaqueteActualizarJugador posicionEnviar = new Red.PaqueteActualizarJugador();
-        posicionEnviar.idJugador = localID;
-        posicionEnviar.x = localPlayer.getWorldX();
-        posicionEnviar.y = localPlayer.getWorldY();
-        posicionEnviar.accion = localPlayer.getAccion();
-        posicionEnviar.facingTowards = localPlayer.getFacingTowards();
-        cliente.sendUDP(posicionEnviar);
+        enviarStatusLocalPlayer();
 
         for (Tarea tarea : this.tareasPorHacer) {
             tarea.update(localPlayer);
@@ -316,6 +314,19 @@ public class GamePane extends Pane {
             jugadorExterno.updatePosition(null);
         }
 
+    }
+
+    private void enviarStatusLocalPlayer() {
+
+        Red.PaqueteActualizarJugador posicionEnviar = new Red.PaqueteActualizarJugador();
+        posicionEnviar.idJugador = localID;
+        posicionEnviar.x = localPlayer.getWorldX();
+        posicionEnviar.y = localPlayer.getWorldY();
+        posicionEnviar.accion = localPlayer.getAccion();
+        posicionEnviar.facingTowards = localPlayer.getFacingTowards();
+        posicionEnviar.killed = localPlayer.wasKilled();
+        posicionEnviar.oculto = localPlayer.isOculto();
+        cliente.sendUDP(posicionEnviar);
     }
 
     public void renderPane() {
@@ -477,7 +488,10 @@ public class GamePane extends Pane {
                 });
 
                 if (ui instanceof DuctoPane ducto) {
-                    ducto.configurar(() -> viajarAlSiguienteDucto(tarea));
+                    ducto.configurar(this::viajarAlSiguienteDucto, () -> {
+                        localPlayer.setOculto(false);
+                        ductoEnUso = null;
+                    });
                 }
 
                 ui.setOnTareaCompletada(() -> {
@@ -515,6 +529,10 @@ public class GamePane extends Pane {
                     reunion.idJugadorSolicitante = localID;
                     cliente.sendTCP(reunion);
                     return;
+                } else if (tarea.getNombre().equals("Ducto")) {
+                    localPlayer.setOculto(true);
+                    ductoEnUso = tarea;
+                    enviarStatusLocalPlayer();
                 }
 
                 abrirTarea(tarea);
@@ -638,25 +656,33 @@ public class GamePane extends Pane {
         return this.tileSize;
     }
 
-    private void viajarAlSiguienteDucto(Tarea ductoActual) {
-        List<Tarea> listaDuctos = new ArrayList<>();
 
-        for (Tarea t : tareasPorHacer) {
-            if (t.getNombre().equals("Ducto")) {
-                listaDuctos.add(t);
+    private void viajarAlSiguienteDucto() {
+
+        ArrayList<Tarea> listDeDuctos = new ArrayList<>();
+
+        for (Tarea tarea : tareasPorHacer) {
+            if (tarea instanceof DuctoTarea) {
+                listDeDuctos.add(tarea);
             }
         }
 
-        if (listaDuctos.size() > 1) {
-            int indiceActual = listaDuctos.indexOf(ductoActual);
-            int siguienteIndice = (indiceActual + 1) % listaDuctos.size();
-            Tarea siguienteDucto = listaDuctos.get(siguienteIndice);
+
+        if (listDeDuctos.size() > 1 && ductoEnUso != null) {
+
+            int indiceActual = listDeDuctos.indexOf(ductoEnUso);
+            int siguienteIndice = (indiceActual + 1) % listDeDuctos.size();
+            Tarea siguienteDucto = listDeDuctos.get(siguienteIndice);
+
+            int centroDuctoX = siguienteDucto.getWorldX() + (tileSize / 2);
+            int centroDuctoY = siguienteDucto.getWorldY() + (tileSize / 2);
 
             // Teletransportar al jugador al centro del siguiente ducto
-            localPlayer.setWorldPosition(siguienteDucto.getWorldX() - 16, siguienteDucto.getWorldY() - 16);
+            localPlayer.setWorldPosition(centroDuctoX, centroDuctoY);
 
             // Cerramos la pantalla del ducto
-            cerrarTareaActual();
+            this.ductoEnUso = siguienteDucto;
+            //cerrarTareaActual();
         }
     }
 
@@ -715,6 +741,7 @@ public class GamePane extends Pane {
             remotePlayer.setTargets(status.x, status.y);
             remotePlayer.setAccion(status.accion);
             remotePlayer.setFacingTowards(status.facingTowards);
+            remotePlayer.setOculto(status.oculto);
         }
 
 

@@ -173,6 +173,7 @@ public class GameServer extends Listener {
             if (nuevoJugador != null) {
                 nuevoJugador.nombre = pc.nombreJugador;
                 nuevoJugador.color = pc.colorJugador;
+                nuevoJugador.oculto = false;
             }
 
             // Le avisamos al jugador para que se cambie el color localmente
@@ -210,6 +211,8 @@ public class GameServer extends Listener {
             if (serverPlayer != null) {
                 serverPlayer.x = jugador.x;
                 serverPlayer.y = jugador.y;
+                serverPlayer.oculto = jugador.oculto;
+                serverPlayer.killed = jugador.killed;
             }
 
 
@@ -235,6 +238,15 @@ public class GameServer extends Listener {
 
         if (paquete instanceof Red.PaqueteSalirLobby) {
             System.out.println("Jugador " + conexion.getID() + " salió del lobby");
+
+            // Liberamos el color del jugador
+
+            ServerPlayer serverPlayer = jugadores.get(conexion.getID());
+
+            if (serverPlayer != null && serverPlayer.color != null) {
+                coloresDisponibles.put(serverPlayer.color, -1);
+            }
+
             jugadores.remove(conexion.getID()); //
 
             // Enviamos la señal para que los demas jugadores dejen de renderizarlo
