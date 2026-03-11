@@ -433,7 +433,9 @@ public class GamePane extends Pane {
     public void agregarJugadorRemoto(Red.PaqueteConexion datos) {
         // Si el ID soy yo mismo, no me agrego a la lista de "remotos"
         System.out.println("Creando jugador remoto");
-        if (datos.idJugador == this.localID) return;
+        if (datos.idJugador == this.localID) {
+            return;
+        }
 
 
         System.out.println("Viendo si es duplicado");

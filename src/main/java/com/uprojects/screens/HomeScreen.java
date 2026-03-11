@@ -73,7 +73,7 @@ public class HomeScreen extends ControladorPantalla {
 
             Red.PaqueteConexion conexion = new Red.PaqueteConexion();
             //conexion.nombreJugador = "Jugador_" + new Random().nextInt(100);
-            conexion.nombreJugador = perfilLocal.getNombre().isEmpty() ? "Jugador_" + new Random().nextInt(100) : perfilLocal.getNombre();
+            conexion.nombreJugador = perfilLocal.getNombre().isEmpty() ? "Cargando..." : perfilLocal.getNombre();
             conexion.colorJugador = perfilLocal.getColor().isEmpty() ? "Amarillo" : perfilLocal.getColor();
             conexion.idJugador = cliente.getID();
 
@@ -120,6 +120,15 @@ public class HomeScreen extends ControladorPantalla {
                 configurarRedListeners(lobby);
                 // Nos conectamos a la IP que el usuario proporsiono
                 cliente.connect(5000, ipHost, Red.TCP_PORT, Red.UDP_PORT);
+
+
+                Red.PaqueteConexion conexion = new Red.PaqueteConexion();
+                //conexion.nombreJugador = "Jugador_" + new Random().nextInt(100);
+                conexion.nombreJugador = perfilLocal.getNombre().isEmpty() ? "Cargando..." : perfilLocal.getNombre();
+                conexion.colorJugador = perfilLocal.getColor().isEmpty() ? "Amarillo" : perfilLocal.getColor();
+                conexion.idJugador = cliente.getID();
+
+                cliente.sendTCP(conexion);
 
                 stageManager.setRoot(lobby, "Lobby");
 
@@ -250,9 +259,19 @@ public class HomeScreen extends ControladorPantalla {
                     paneActual.removerJugadorRemoto(paquete);
                 }
 
-                if (objeto instanceof Red.PaqueteConexion) {
+                if (objeto instanceof Red.PaqueteConexion paquete) {
                     System.out.println("RECIBIDA PAQUETE DE CONEXION");
-                    paneActual.agregarJugadorRemoto((Red.PaqueteConexion) objeto);
+
+                    if (paquete.idJugador == cliente.getID()) {
+                        Platform.runLater(() -> {
+                            paneActual.getLocalPlayer().setColor(paquete.colorJugador); // You need to create this method in Player/Entidad
+                            paneActual.getLocalPlayer().cargarSprites(paquete.colorJugador);
+                        });
+                    } else {
+
+                        paneActual.agregarJugadorRemoto((Red.PaqueteConexion) objeto);
+                    }
+
                 }
 
                 if (objeto instanceof Red.PaqueteActualizarJugador jugadorExt) {

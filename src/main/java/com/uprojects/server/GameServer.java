@@ -7,10 +7,7 @@ import com.uprojects.entities.RemotePlayer;
 
 import java.io.IOException;
 import java.rmi.Remote;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GameServer extends Listener {
@@ -19,6 +16,8 @@ public class GameServer extends Listener {
     private boolean enReunion;
     private int tareasRestantes;
     private HashMap<Integer, Integer> votos;
+    private HashMap<String, Integer> coloresDisponibles;
+    private static final String[] colores = {"Amarillo", "Azul", "AzulClaro", "Gris", "Morado", "Naranja", "Rojo", "Rosado", "Verde", "VerdeOscuro"};
     private int votosRecibidos;
     private int cantImpostores;
     private final int MAX_JUGADORES = 10;
@@ -34,6 +33,12 @@ public class GameServer extends Listener {
         this.enReunion = false;
         this.votos = new HashMap<>();
         this.votosRecibidos = 0;
+        this.coloresDisponibles = new HashMap<>(10);
+
+        for (String color : colores) {
+            coloresDisponibles.put(color, -1);
+        }
+
 
         // Registramos las clases que se transmitiran por la red
         Red.registrar(server.getKryo());
@@ -59,11 +64,14 @@ public class GameServer extends Listener {
         if (jugadores.size() >= MAX_JUGADORES || juegoIniciado) {
             System.out.println("Servidor lleno. Rechazando a " + conexion.getRemoteAddressTCP());
             conexion.close(); // Rechaza si está lleno o ya empezó
+            return;
         }
 
-        ServerPlayer nuevoJugador = new ServerPlayer(conexion.getID(), "Jugador_" + conexion.getID(), "Amarillo");
-        jugadores.put(conexion.getID(), nuevoJugador);
+        ServerPlayer tempPlayer = new ServerPlayer(conexion.getID(), "Cargando...", "Amarillo");
+        jugadores.put(conexion.getID(), tempPlayer);
 
+
+        /*
         System.out.println("Agregado jugador " + nuevoJugador.nombre);
 
 
@@ -86,6 +94,11 @@ public class GameServer extends Listener {
         server.sendToAllExceptTCP(conexion.getID(), avisoNuevo);
 
         broadcastLobbyStatus();
+
+         */
+
+
+        broadcastLobbyStatus();
     }
 
 
@@ -95,14 +108,22 @@ public class GameServer extends Listener {
 
         System.out.println("Jugador desconectado. Total: " + jugadores.size());
 
+        ServerPlayer jugador = jugadores.get(conexion.getID());
+
+        // Liberamos el color del jugador
+        if (jugador != null && jugador.color != null) {
+            coloresDisponibles.put(jugador.color, -1);
+        }
+
         jugadores.remove(conexion.getID());
 
-        Red.PaqueteRemoverJugador removerJugador = new Red.PaqueteRemoverJugador();
-        removerJugador.idJugadorDesconectado = conexion.getID();
-        removerJugador.totalJugadoresConectados = jugadores.size();
-        removerJugador.puedeEmpezar = jugadores.size() >= 3;
+        Red.PaqueteRemoverJugador jugadorDesconectado = new Red.PaqueteRemoverJugador();
+        jugadorDesconectado.idJugadorDesconectado = conexion.getID();
+        jugadorDesconectado.totalJugadoresConectados = jugadores.size();
+        jugadorDesconectado.puedeEmpezar = jugadores.size() >= 3;
 
-        server.sendToAllTCP(removerJugador);
+
+        server.sendToAllTCP(jugadorDesconectado);
 
         // Si alguien se va, verificamos si los que quedan ya terminaron
         if (juegoIniciado) verificarFinDeJuego();
@@ -126,20 +147,51 @@ public class GameServer extends Listener {
         // 1. Un jugador entra a la sala
         if (paquete instanceof Red.PaqueteConexion pc) {
             pc.idJugador = conexion.getID();
-            ServerPlayer nuevoJugador = new ServerPlayer(pc.idJugador, pc.nombreJugador, pc.colorJugador);
-            jugadores.put(pc.idJugador, nuevoJugador);
-            System.out.println(pc.nombreJugador + " se ha unido.");
 
+            Integer idOcupante = coloresDisponibles.get(pc.colorJugador);
+            boolean colorEnUso = false;
+
+            if (idOcupante != null && idOcupante != -1 && idOcupante != pc.idJugador) {
+                colorEnUso = true;
+            }
+
+            if (colorEnUso) {
+                for (Map.Entry<String, Integer> entry : coloresDisponibles.entrySet()) {
+                    if (entry.getValue() == -1) {
+                        pc.colorJugador = entry.getKey();
+                        break;
+                    }
+                }
+            }
+
+            // Marcamos el color como reservado
+            coloresDisponibles.put(pc.colorJugador, pc.idJugador);
+
+            // Actualizamos al jugador temporal que creamos cuando se conecto con sus valores calculados
+            ServerPlayer nuevoJugador = jugadores.get(pc.idJugador);
+
+            if (nuevoJugador != null) {
+                nuevoJugador.nombre = pc.nombreJugador;
+                nuevoJugador.color = pc.colorJugador;
+            }
+
+            // Le avisamos al jugador para que se cambie el color localmente
+            conexion.sendTCP(pc);
+
+
+            // Ahora a los demas
             server.sendToAllExceptTCP(conexion.getID(), pc);
 
+
+            // Le enviamos la posicion de todos los jugadores al jugador nuevo
             for (ServerPlayer serverPlayer : jugadores.values()) {
                 if (serverPlayer.id != pc.idJugador) {
                     Red.PaqueteConexion infoExistente = new Red.PaqueteConexion();
                     infoExistente.idJugador = serverPlayer.id;
                     infoExistente.nombreJugador = serverPlayer.nombre;
-                    infoExistente.colorJugador = "Amarillo"; // Despues veo el color
+                    infoExistente.colorJugador = serverPlayer.color;
 
-                    conexion.sendTCP(infoExistente);
+                    conexion.sendTCP(infoExistente); // Solo al que se acaba de conectar recibe esto
                 }
             }
 

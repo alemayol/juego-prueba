@@ -25,6 +25,7 @@ public abstract class Entidad {
     protected Rectangle areaSolida;
 
     // Sprites
+    private static final String[] colores = {"Amarillo", "Azul", "AzulClaro", "Gris", "Morado", "Naranja", "Rojo", "Rosado", "Verde", "VerdeOscuro"};
     protected Image[] left, right, idleR, idleL, attackR, attackL, electrocutadoR, electrocutadoL;
     protected Image lastSprite;
     protected String accion, facingTowards;
@@ -54,7 +55,7 @@ public abstract class Entidad {
     }
 
 
-    protected void cargarSprites(String color) {
+    public void cargarSprites(String color) {
         try {
 
             for (int i = 0; i < 2; i++) {
@@ -156,6 +157,20 @@ public abstract class Entidad {
 
     public String getNombre() {
         return this.nombre;
+    }
+
+    public String getColor() {
+        return this.color;
+    }
+
+    public void setColor(String nuevoColor) {
+
+        for (String color : colores) {
+            if (color.equals(nuevoColor)) {
+                this.color = nuevoColor;
+                return;
+            }
+        }
     }
 
     public void aumentarTareasCompletadas() {
