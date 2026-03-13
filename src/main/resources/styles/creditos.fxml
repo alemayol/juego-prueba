@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="720.0" prefWidth="1280.0" stylesheets="@homescreen.css" xmlns="http://javafx.com/javafx/20" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.uprojects.screens.HomeScreen">
+<AnchorPane prefHeight="720.0" prefWidth="1280.0" stylesheets="@homescreen.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.uprojects.screens.HomeScreen">
     
     <ImageView fx:id="imgFondo" pickOnBounds="true" preserveRatio="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <image>
@@ -18,16 +18,34 @@
 
     <VBox alignment="CENTER" spacing="40.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         
-        <Label text="CRÉDITOS" style="-fx-font-family: 'AmongUsFont'; -fx-text-fill: white; -fx-font-size: 80px;" />
+        <Label style="-fx-font-family: 'AmongUsFont'; -fx-text-fill: white; -fx-font-size: 80px;" text="CRÉDITOS" />
         
         <VBox alignment="CENTER" spacing="15.0" style="-fx-background-color: rgba(0, 0, 0, 0.7); -fx-background-radius: 20px; -fx-padding: 40px;">
-            <Label text="Desarrollado por:" style="-fx-font-family: 'Arial'; -fx-text-fill: #a0a0a0; -fx-font-size: 24px; -fx-font-weight: bold;" />
-            <Label text="[ Tu Nombre ]" style="-fx-font-family: 'Arial'; -fx-text-fill: white; -fx-font-size: 28px;" />
-            <Label text="[ Nombre de tu compañero ]" style="-fx-font-family: 'Arial'; -fx-text-fill: white; -fx-font-size: 28px;" />
-            <Label text="Universidad Nacional Experimental de Guayana (UNEG)" style="-fx-font-family: 'Arial'; -fx-text-fill: #00d2ff; -fx-font-size: 20px;" />
+            <Label style="-fx-font-family: 'Arial'; -fx-text-fill: #00d2ff; -fx-font-size: 20px;" text="Proyecto de la Universidad Nacional Experimental de Guayana (UNEG)" />
+            <Label style="-fx-font-family: 'Arial'; -fx-text-fill: #a0a0a0; -fx-font-size: 24px; -fx-font-weight: bold;" text="Desarrollado por">
+            <VBox.margin>
+               <Insets bottom="12.0" top="24.0" />
+            </VBox.margin></Label>
+            <Label style="-fx-font-family: 'Arial'; -fx-text-fill: white; -fx-font-size: 28px;" text="Cabello, Kendra" />
+            <Label style="-fx-font-family: 'Arial'; -fx-text-fill: white; -fx-font-size: 28px;" text="Maluenga, Isaac" />
+         <Label style="-fx-font-family: 'Arial'; -fx-text-fill: white; -fx-font-size: 28px;" text="Mayol, Alejandro" />
+         <Label style="-fx-font-family: 'Arial'; -fx-text-fill: white; -fx-font-size: 28px;" text="Sanchez, Enrique" />
+         <Label style="-fx-font-family: 'Arial'; -fx-text-fill: white; -fx-font-size: 28px;" text="Sanchez, Genesis" />
+         <Label style="-fx-font-family: 'Arial'; -fx-text-fill: #a0a0a0; -fx-font-size: 24px; -fx-font-weight: bold;" text="Creacion de mapas">
+            <VBox.margin>
+               <Insets bottom="12.0" top="24.0" />
+            </VBox.margin>
+         </Label>
+         <Label style="-fx-font-family: 'Arial'; -fx-text-fill: white; -fx-font-size: 28px;" text="Maluenga, Isaac" />
+         <Label style="-fx-font-family: 'Arial'; -fx-text-fill: #a0a0a0; -fx-font-size: 24px; -fx-font-weight: bold;" text="Creacion de personajes">
+            <VBox.margin>
+               <Insets bottom="12.0" top="24.0" />
+            </VBox.margin>
+         </Label>
+         <Label style="-fx-font-family: 'Arial'; -fx-text-fill: white; -fx-font-size: 28px;" text="Sanchez, Enrique" />
         </VBox>
         
-        <Button styleClass="boton-amongus" text="VOLVER" onAction="#volverAlMenu" />
+        <Button onAction="#volverAlMenu" styleClass="boton-amongus" text="VOLVER" />
         
     </VBox>
 </AnchorPane>

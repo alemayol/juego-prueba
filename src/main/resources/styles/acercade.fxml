@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="720.0" prefWidth="1280.0" stylesheets="@homescreen.css" xmlns="http://javafx.com/javafx/20" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.uprojects.screens.HomeScreen">
+<AnchorPane prefHeight="720.0" prefWidth="1280.0" stylesheets="@homescreen.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.uprojects.screens.HomeScreen">
     
     <ImageView fx:id="imgFondo" pickOnBounds="true" preserveRatio="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <image>
@@ -18,26 +18,27 @@
 
     <VBox alignment="CENTER" spacing="30.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         
-        <Label text="ACERCA DE" style="-fx-font-family: 'AmongUsFont'; -fx-text-fill: white; -fx-font-size: 80px;" />
+        <Label style="-fx-font-family: 'AmongUsFont'; -fx-text-fill: white; -fx-font-size: 80px;" text="ACERCA DE" />
         
-        <VBox alignment="CENTER" spacing="10.0" style="-fx-background-color: rgba(0, 0, 0, 0.7); -fx-background-radius: 20px; -fx-padding: 30px; -fx-max-width: 800px;">
+        <VBox alignment="CENTER" spacing="10.0" style="-fx-background-color: rgba(0, 0, 0, 0.7); -fx-background-radius: 20px; -fx-padding: 30px; -fx-max-width: 900px;">
             
-            <Label text="ENTORNO DE DESARROLLO" style="-fx-font-family: 'Arial'; -fx-text-fill: #00d2ff; -fx-font-size: 22px; -fx-font-weight: bold;" />
-            <Label text="Desarrollado con Java (JDK) 21. Compilado para JVM target 21." style="-fx-font-family: 'Arial'; -fx-text-fill: white; -fx-font-size: 18px;" />
+            <Label style="-fx-font-family: 'Arial'; -fx-text-fill: #00d2ff; -fx-font-size: 22px; -fx-font-weight: bold;" text="ENTORNO DE DESARROLLO" />
+            <Label style="-fx-font-family: 'Arial'; -fx-text-fill: white; -fx-font-size: 18px;" text="Desarrollado con Java (JDK) 21. Compilado para JVM target 21." />
             
-            <Label text="LIBRERÍAS Y MOTORES" style="-fx-font-family: 'Arial'; -fx-text-fill: #00d2ff; -fx-font-size: 22px; -fx-font-weight: bold;">
-                <VBox.margin><Insets top="20.0"/></VBox.margin>
+            <Label style="-fx-font-family: 'Arial'; -fx-text-fill: #00d2ff; -fx-font-size: 22px; -fx-font-weight: bold;" text="LIBRERÍAS Y MOTORES">
+                <VBox.margin><Insets top="20.0" /></VBox.margin>
             </Label>
             
             <VBox alignment="CENTER_LEFT" spacing="8.0">
-                <Label text="• JavaFX (v21): Motor gráfico, UI y renderizado de canvas 2D." style="-fx-font-family: 'Arial'; -fx-text-fill: white; -fx-font-size: 18px;" />
-                <Label text="• KryoNet (v2.22.0) &amp; Kryo (v5.6.2): Arquitectura de red y serialización." style="-fx-font-family: 'Arial'; -fx-text-fill: white; -fx-font-size: 18px;" />
-                <Label text="• Libtiled (v1.4.3): Carga y parseo de mapas .tmx (Tiled)." style="-fx-font-family: 'Arial'; -fx-text-fill: white; -fx-font-size: 18px;" />
-                <Label text="• Jakarta XML Bind API: Procesamiento de archivos XML." style="-fx-font-family: 'Arial'; -fx-text-fill: white; -fx-font-size: 18px;" />
+                <Label style="-fx-font-family: 'Arial'; -fx-text-fill: white; -fx-font-size: 18px;" text="• JavaFX (v21): Motor gráfico, UI y renderizado de canvas 2D." />
+                <Label style="-fx-font-family: 'Arial'; -fx-text-fill: white; -fx-font-size: 18px;" text="• KryoNet (v2.22.0) &amp; Kryo (v5.6.2): Arquitectura de red y serialización." />
+                <Label style="-fx-font-family: 'Arial'; -fx-text-fill: white; -fx-font-size: 18px;" text="• Libtiled (v1.4.3): Carga y parseo de mapas .tmx (Tiled)." />
+                <Label style="-fx-font-family: 'Arial'; -fx-text-fill: white; -fx-font-size: 18px;" text="• Jakarta XML Bind API: Procesamiento de archivos XML." />
+            <Label style="-fx-font-family: 'Arial'; -fx-text-fill: white; -fx-font-size: 18px;" text="• Maven: Administracion de dependencias externas" />
             </VBox>
         </VBox>
         
-        <Button styleClass="boton-amongus" text="VOLVER" onAction="#volverAlMenu" />
+        <Button onAction="#volverAlMenu" styleClass="boton-amongus" text="VOLVER" />
         
     </VBox>
 </AnchorPane>

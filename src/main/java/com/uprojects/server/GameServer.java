@@ -435,13 +435,13 @@ public class GameServer extends Listener {
         iniciarJuego.mapa = paquete.mapa;
         // Por ahora lo mandamos a la biblioteca, tenemos que calcular esto mejor al tener dos mapas
 
-        if (this.mapaElegido == "mapa1.tmx") {
+        if (this.mapaElegido.equals("mapa1.tmx")) {
             iniciarJuego.inicioX = 512;
             iniciarJuego.inicioY = 384;
         } else {
 
-            iniciarJuego.inicioX = 640;
-            iniciarJuego.inicioY = 550;
+            iniciarJuego.inicioX = 900;
+            iniciarJuego.inicioY = 760;
         }
 
         iniciarJuego.tareasRestantes = this.tareasRestantes;
