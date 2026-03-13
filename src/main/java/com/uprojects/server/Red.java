@@ -58,6 +58,7 @@ public class Red {
         public String mapa; // path -> mapa1.tmx
         public int idImpostor1;
         public int idImpostor2;
+        public String colorJugadorLocal;
         public int tareasRestantes;
     }
 

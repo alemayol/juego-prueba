@@ -13,16 +13,21 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 
@@ -73,8 +78,7 @@ public class HomeScreen extends ControladorPantalla {
 
 
             Red.PaqueteConexion conexion = new Red.PaqueteConexion();
-            //conexion.nombreJugador = "Jugador_" + new Random().nextInt(100);
-            conexion.nombreJugador = perfilLocal.getNombre().isEmpty() ? "Cargando..." : perfilLocal.getNombre();
+            conexion.nombreJugador = perfilLocal.getNombre().isEmpty() ? "Cargando..." : perfilLocal.getNombre() + "_" + cliente.getID();
             conexion.colorJugador = perfilLocal.getColor().isEmpty() ? "Amarillo" : perfilLocal.getColor();
             conexion.idJugador = cliente.getID();
 
@@ -111,7 +115,7 @@ public class HomeScreen extends ControladorPantalla {
 
             try {
 
-                // START ONLY THE CLIENT
+                // Creando cliente
                 cliente = new Client();
                 Red.registrar(cliente.getKryo());
                 cliente.start();
@@ -124,7 +128,6 @@ public class HomeScreen extends ControladorPantalla {
 
 
                 Red.PaqueteConexion conexion = new Red.PaqueteConexion();
-                //conexion.nombreJugador = "Jugador_" + new Random().nextInt(100);
                 conexion.nombreJugador = perfilLocal.getNombre().isEmpty() ? "Cargando..." : perfilLocal.getNombre();
                 conexion.colorJugador = perfilLocal.getColor().isEmpty() ? "Amarillo" : perfilLocal.getColor();
                 conexion.idJugador = cliente.getID();
@@ -185,7 +188,7 @@ public class HomeScreen extends ControladorPantalla {
         if (servidorLocal != null) {
             try {
                 System.out.println("Deteniendo servidor local...");
-                servidorLocal.detenerServidor(); // Your existing method
+                servidorLocal.detenerServidor();
                 System.out.println("Servidor detenido correctamente");
             } catch (Exception ex) {
                 System.err.println("Error al detener servidor: " + ex.getMessage());
@@ -244,6 +247,7 @@ public class HomeScreen extends ControladorPantalla {
 
                 if (objeto instanceof Red.PaqueteIniciarJuego paquete) {
                     Platform.runLater(() -> {
+                        //transicionComienzoJuego(conexion, paquete, paneActual);
                         paneActual.cambiarAMapaPrincipal(paquete);
                     });
                 }
@@ -261,7 +265,6 @@ public class HomeScreen extends ControladorPantalla {
                 }
 
                 if (objeto instanceof Red.PaqueteConexion paquete) {
-                    System.out.println("RECIBIDA PAQUETE DE CONEXION");
 
                     if (paquete.idJugador == cliente.getID()) {
                         Platform.runLater(() -> {
@@ -358,15 +361,15 @@ public class HomeScreen extends ControladorPantalla {
 
     public void PantallaComoJugar(ActionEvent actionEvent) {
 
-        ComoJugarPane guiaComoJugar = new ComoJugarPane(()->{
-            try{
+        ComoJugarPane guiaComoJugar = new ComoJugarPane(() -> {
+            try {
                 //Nuevo FXM para el menu principal
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/styles/homescreen.fxml"));
                 Parent root = loader.load();
                 HomeScreen controller = loader.getController();
                 controller.setStageManager(this.stageManager);
                 stageManager.setRoot(root, "Among Us UNEG");
-            }catch (Exception ex){
+            } catch (Exception ex) {
                 System.out.println("Error al volver al menu: " + ex.getMessage());
                 ex.printStackTrace();
             }
@@ -374,4 +377,52 @@ public class HomeScreen extends ControladorPantalla {
 
         stageManager.setRoot(guiaComoJugar, "Como Jugar");
     }
+
+    // Pantalla creditos
+    public void pantallaCreditos(ActionEvent event) {
+        try {
+
+            // Cambiar el fxml al de creditos
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/styles/creditos.fxml"));
+            Parent root = loader.load();
+            HomeScreen controller = loader.getController();
+            controller.setStageManager(this.stageManager);
+            this.stageManager.setRoot(root, "Creditos");
+
+
+        } catch (IOException e) {
+            showAlert("Ups", "Error cargando la pantalla de créditos: " + e.getMessage());
+        }
+    }
+
+    public void volverAlMenu(ActionEvent event) {
+        try {
+            //Nuevo FXM para el menu principal
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/styles/homescreen.fxml"));
+            Parent root = loader.load();
+            HomeScreen controller = loader.getController();
+            controller.setStageManager(this.stageManager);
+            stageManager.setRoot(root, "Among Us UNEG");
+
+        } catch (IOException e) {
+            showAlert("Ups", "Error regresando al menu: " + e.getMessage());
+        }
+    }
+
+    public void pantallaAcercaDe(ActionEvent event) {
+        try {
+
+            // Cambiar el fxml al de Acerca de
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/styles/acercade.fxml"));
+            Parent root = loader.load();
+            HomeScreen controller = loader.getController();
+            controller.setStageManager(this.stageManager);
+            this.stageManager.setRoot(root, "Acerca de");
+
+        } catch (IOException e) {
+            showAlert("Ups", "Error cargando la pantalla Acerca De: " + e.getMessage());
+        }
+    }
+
+
 }

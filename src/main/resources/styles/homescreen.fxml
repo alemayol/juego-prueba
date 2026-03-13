@@ -27,12 +27,15 @@
 
         <VBox alignment="CENTER" pickOnBounds="false" spacing="25.0">
             <HBox alignment="CENTER" pickOnBounds="false" spacing="25.0">
-                <Button styleClass="boton-amongus" text="LOCAL" onAction="#startLobby" />
-                <Button styleClass="boton-amongus" text="EN LINEA" onAction="#joinLobby" />
+                <Button styleClass="boton-amongus" text="CREAR PARTIDA" onAction="#startLobby" />
+                <Button styleClass="boton-amongus" text="UNIRSE A PARTIDA" onAction="#joinLobby" />
             </HBox>
+            
+            <Button styleClass="boton-amongus" text="CRÉDITOS" onAction="#pantallaCreditos" />
+            
             <HBox alignment="CENTER" pickOnBounds="false" spacing="25.0">
                 <Button styleClass="boton-amongus" text="COMO JUGAR" onAction="#PantallaComoJugar" />
-                <Button styleClass="boton-amongus" text="ACERCA DE" onAction="#switchScenes" />
+                <Button styleClass="boton-amongus" text="ACERCA DE" onAction="#pantallaAcercaDe" /> 
             </HBox>
         </VBox>
         

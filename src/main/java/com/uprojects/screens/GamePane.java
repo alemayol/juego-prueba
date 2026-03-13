@@ -22,6 +22,7 @@ import javafx.animation.AnimationTimer;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -29,10 +30,14 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.RadialGradient;
+import javafx.scene.paint.Stop;
 import javafx.util.Duration;
 
 import java.io.IOException;
@@ -52,6 +57,7 @@ public class GamePane extends Pane {
     private int tareasRestantes;
     private boolean esHost;
     private StageManager stageManager;
+    private boolean juegoIniciado;
 
     // Config Pantalla
     private final int originalTileSize = 32; // Eje: 16x16 tiles
@@ -96,6 +102,7 @@ public class GamePane extends Pane {
     private int localID;
     private String localPlayerName;
     private String localPlayerColor;
+    private double conoVision;
 
     // Map handler (more like map manager but u get it)
     private MapHandler mapHandler;
@@ -118,6 +125,7 @@ public class GamePane extends Pane {
         this.esHost = isHost;
         this.localID = localID;
         this.cliente = cliente;
+        this.juegoIniciado = false;
         this.localPlayerName = nombreJugadorLocal;
         this.localPlayerColor = colorJugadorLocal;
 
@@ -159,10 +167,9 @@ public class GamePane extends Pane {
         this.tareaActual = null;
         this.tareasPorHacer = new ArrayList<>();
         this.ductoEnUso = null;
-        //this.taresPorHacer.add(new ArreglarCablesTarea());
 
 
-        // 2. Create the Overlay UI
+        // Overlay del lobby
         lobbyUI = new VBox(10);
         lobbyUI.setStyle("-fx-background-color: rgba(0,0,0,0.5); -fx-padding: 20;");
         lobbyUI.setTranslateX(20);
@@ -191,7 +198,7 @@ public class GamePane extends Pane {
         });
 
         //Progress Bar
-        barraProgresoTareas = new javafx.scene.control.ProgressBar(0);
+        barraProgresoTareas = new ProgressBar(0);
         barraProgresoTareas.setPrefWidth(300);
         barraProgresoTareas.setPrefHeight(25);
         barraProgresoTareas.setTranslateX(20);
@@ -202,7 +209,7 @@ public class GamePane extends Pane {
 
         lobbyUI.getChildren().addAll(lblLocalIP, lblContador, btnSalir);
 
-        // 3. Add Start button only for Host
+        // El boton de inicio de juego solo le aparece al anfitrion
         if (isHost) {
             btnEmpezar = new Button("INICIAR PARTIDA");
             btnEmpezar.setDisable(true); // Disabled until 5 players
@@ -256,9 +263,9 @@ public class GamePane extends Pane {
                     return;
                 }
 
-                // Calculate FPS
+                // FPS
                 frameCount++;
-                // If 1 second has passed (1,000,000,000 nanoseconds)
+                // Paso 1 segundo (1,000,000,000 nanosegundos)
                 if (now - fpsTimer >= 1_000_000_000L) {
                     fpsDisplay = "FPS: " + frameCount;
                     frameCount = 0;
@@ -271,7 +278,7 @@ public class GamePane extends Pane {
                     update();
                     renderPane();
                 } catch (Exception e) {
-                    System.err.println("=== EXCEPTION in game loop ===");
+                    System.err.println("=== EXCEPCION en game loop ===");
                     e.printStackTrace();
                     System.err.println("================================");
                 }
@@ -354,7 +361,16 @@ public class GamePane extends Pane {
         localPlayer.draw(this.gc);
 
         for (RemotePlayer jugadorExterno : jugadoresRemotos.values()) {
-            jugadorExterno.draw(gc, localPlayer);
+
+            // Distancia euclidiana entre el jugador local y los demas jugadores. Lo usamos para ver si se encuentran fuera del cono de vision del jugador
+            double distancia = Math.hypot(localPlayer.getWorldX() - jugadorExterno.getWorldX(), localPlayer.getWorldY() - jugadorExterno.getWorldY());
+
+            if (!this.juegoIniciado) {
+                jugadorExterno.draw(gc, localPlayer);
+            } else if (distancia <= conoVision) {
+                jugadorExterno.draw(gc, localPlayer);
+            }
+
         }
 
         for (Tarea tarea : this.tareasPorHacer) {
@@ -362,19 +378,18 @@ public class GamePane extends Pane {
         }
 
 
-        // We pass the graphics object to be able to set graphics per player
         //mapHandler.draw(this.gc, zoom);
         //localPlayer.draw(this.gc);
-        // Release any system resources use by this graphics context
+        // Liberamos los recursos que este usando el GraphicalContext
         gc.restore();
 
+        fogOfWar(gc);
 
         // Aqui dibujamos componentes de UI (menus, botones, etc) en una posicion fija
-
         dibujarImpostorEnfriamiento(gc);
-
+        // Contador de FPS
         gc.setFill(javafx.scene.paint.Color.WHITE);
-        gc.fillText(fpsDisplay, 120, 120); // Draws at top-left
+        gc.fillText(fpsDisplay, 120, 60); // Draws at top-left
 
     }
 
@@ -709,10 +724,15 @@ public class GamePane extends Pane {
 
         if (this.impostor) {
             System.out.println("-------------- ERES EL IMPOSTOR ------------------");
+            this.conoVision = 400.0;
+        } else {
+            this.conoVision = 220.0;
         }
 
         // Ocultamos la ventana del lobby
         this.ocultarLobbyUI();
+
+        this.juegoIniciado = true;
 
         // Cargamos el nuevo mapa
         this.mapHandler.loadMapFile(datos.mapa);
@@ -728,9 +748,51 @@ public class GamePane extends Pane {
         // Enviamos a todos los jugadores a la biblioteca (debemos calcular esto mejor, por ahora se queda asi)
         this.localPlayer.setWorldPosition(datos.inicioX, datos.inicioY); // Primero al jugador local
 
+        this.localPlayer.setPaused(true);
+
         for (RemotePlayer rp : jugadoresRemotos.values()) {
             rp.setTargets(datos.inicioX, datos.inicioY);
         }
+
+
+        transicionComienzoJuego(datos, this, this.impostor);
+    }
+
+
+    private void transicionComienzoJuego(Red.PaqueteIniciarJuego paquete, GamePane pane, boolean impostor) {
+        // Creamos la pantalla oscura que cubrirá todo el stage
+        VBox pantallaComienzo = new VBox(20);
+        pantallaComienzo.setAlignment(Pos.CENTER);
+        pantallaComienzo.setStyle("-fx-background-color: rgba(0, 0, 0, 1.00);"); // Fondo negro casi opaco
+        pantallaComienzo.setPrefSize(pane.getScene().getWidth(), pane.getScene().getHeight());
+
+        // Tomamos el mensaje de victoria del servidor y lo mostramos
+        Label lblRolJugador = new Label();
+        lblRolJugador.setFont(new javafx.scene.text.Font("Arial", 60));
+        lblRolJugador.setStyle("-fx-font-weight: bold; -fx-effect: dropshadow(gaussian, black, 10, 0, 0, 0);");
+
+        // Cambiamos el color dependiendo de quién ganó
+        if (impostor) {
+            lblRolJugador.setTextFill(Color.RED);
+            lblRolJugador.setText("ERES UN IMPOSTOR");
+        } else {
+            lblRolJugador.setTextFill(Color.CYAN); // Azul claro para los tripulantes
+            lblRolJugador.setText("ERES UN TRIPULANTE");
+        }
+
+        pantallaComienzo.getChildren().add(lblRolJugador);
+
+        // Lo agregamos a la pantalla y forzamos que esté por encima de todo
+        pane.getChildren().add(pantallaComienzo);
+        pantallaComienzo.toFront();
+
+        // Iniciamos un temporizador de 5 segundos antes de salir al menú para que no sean tan abrupto el cambio
+        javafx.animation.PauseTransition delay = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(5));
+        delay.setOnFinished(e -> {
+            pane.getChildren().remove(pantallaComienzo);
+            pane.getLocalPlayer().setPaused(false);
+        });
+        delay.play();
     }
 
     public void actualizarLobby(Red.PaqueteLobbyInfo status) {
@@ -886,9 +948,9 @@ public class GamePane extends Pane {
 
         // Creamos la pantalla oscura que cubrirá todo el canvas
         VBox pantallaFin = new VBox(20);
-        pantallaFin.setAlignment(javafx.geometry.Pos.CENTER);
+        pantallaFin.setAlignment(Pos.CENTER);
         pantallaFin.setStyle("-fx-background-color: rgba(0, 0, 0, 0.85);"); // Fondo negro casi opaco
-        pantallaFin.setPrefSize(canvas.getWidth(), canvas.getHeight());
+        pantallaFin.setPrefSize(this.getScene().getWidth(), this.getScene().getHeight());
 
         // Tomamos el mensaje de victoria del servidor y lo mostramos
         Label lblGanador = new Label(paquete.mensajeGanador);
@@ -912,6 +974,30 @@ public class GamePane extends Pane {
         javafx.animation.PauseTransition delay = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(5));
         delay.setOnFinished(e -> irAMenuPrincipal());
         delay.play();
+    }
+
+    private void fogOfWar(GraphicsContext gc) {
+
+
+        // Calculamos el centro del jugador, como cuando lo dibujamos
+        double playerScreenX = canvas.getWidth() / 2.0;
+        double playerScreenY = canvas.getHeight() / 2.0;
+
+        // Gradiente radial (transparente en el centro y negro en los bordes)
+        RadialGradient fog = new RadialGradient(
+                0, 0, // angulo, distancia
+                playerScreenX, playerScreenY, // centro del círculo
+                conoVision, // radio del círculo de vision
+                false, // si es proporcional (false para usar pixeles exactos)
+                CycleMethod.NO_CYCLE, // fuera del radio del gradiente no se afecta
+                new Stop(0.0, Color.TRANSPARENT),
+                new Stop(0.6, Color.rgb(0, 0, 0, 0.4)), // Comienza a desvanecerse
+                new Stop(1.0, Color.rgb(0, 0, 0, 0.98)) // oscuro (98% opaco)
+        );
+
+        // Dibujamos un rectángulo sobre todo el gamePane la gradiente
+        gc.setFill(fog);
+        gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
     }
 
 }

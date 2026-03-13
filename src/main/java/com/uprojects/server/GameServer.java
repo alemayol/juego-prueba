@@ -73,33 +73,6 @@ public class GameServer extends Listener {
         jugadores.put(conexion.getID(), tempPlayer);
 
 
-        /*
-        System.out.println("Agregado jugador " + nuevoJugador.nombre);
-
-
-        // Le enviamos la posicion de todos los jugadores al jugador nuevo
-        for (ServerPlayer player : jugadores.values()) {
-            Red.PaqueteConexion pc = new Red.PaqueteConexion();
-            pc.idJugador = player.id;
-            pc.nombreJugador = player.nombre;
-            pc.colorJugador = player.color;
-            conexion.sendTCP(pc); // Solo al que se acaba de conectar recibe esto
-        }
-
-        // Ahora si avisamos a los demas
-        Red.PaqueteConexion avisoNuevo = new Red.PaqueteConexion();
-        avisoNuevo.idJugador = nuevoJugador.id;
-        avisoNuevo.nombreJugador = nuevoJugador.nombre;
-        avisoNuevo.colorJugador = nuevoJugador.color;
-
-        // Lo enviamos a todos MENOS al que acaba de entrar
-        server.sendToAllExceptTCP(conexion.getID(), avisoNuevo);
-
-        broadcastLobbyStatus();
-
-         */
-
-
         broadcastLobbyStatus();
     }
 
@@ -112,8 +85,11 @@ public class GameServer extends Listener {
 
         ServerPlayer jugador = jugadores.get(conexion.getID());
 
+        if (jugador == null)
+            return;
+
         // Liberamos el color del jugador
-        if (jugador != null && jugador.color != null) {
+        if (jugador.color != null) {
             coloresDisponibles.put(jugador.color, -1);
         }
 
@@ -177,7 +153,7 @@ public class GameServer extends Listener {
             ServerPlayer nuevoJugador = jugadores.get(pc.idJugador);
 
             if (nuevoJugador != null) {
-                nuevoJugador.nombre = pc.nombreJugador;
+                nuevoJugador.nombre = pc.nombreJugador + "_" + conexion.getID();
                 nuevoJugador.color = pc.colorJugador;
                 nuevoJugador.oculto = false;
             }
@@ -459,6 +435,7 @@ public class GameServer extends Listener {
         iniciarJuego.inicioX = 512;
         iniciarJuego.inicioY = 384;
         iniciarJuego.tareasRestantes = this.tareasRestantes;
+        iniciarJuego.colorJugadorLocal = jugadores.get(conexion.getID()).color;
 
         if (cantImpostores == 2) {
 
