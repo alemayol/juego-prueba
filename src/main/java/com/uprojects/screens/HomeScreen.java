@@ -6,7 +6,6 @@ import com.esotericsoftware.kryonet.Listener;
 import com.uprojects.core.PerfilJugador;
 import com.uprojects.server.GameServer;
 import com.uprojects.server.Red;
-import com.uprojects.ui.ComoJugarPane;
 import com.uprojects.ui.ConfiguracionPane;
 import com.uprojects.ui.LobbyPane;
 import javafx.application.Platform;
@@ -404,24 +403,23 @@ public class HomeScreen extends ControladorPantalla {
         });
     }
 
-    public void PantallaComoJugar(ActionEvent actionEvent) {
 
-        ComoJugarPane guiaComoJugar = new ComoJugarPane(() -> {
-            try {
-                //Nuevo FXM para el menu principal
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/styles/homescreen.fxml"));
-                Parent root = loader.load();
-                HomeScreen controller = loader.getController();
-                controller.setStageManager(this.stageManager);
-                stageManager.setRoot(root, "Among Us UNEG");
-            } catch (Exception ex) {
-                System.out.println("Error al volver al menu: " + ex.getMessage());
-                ex.printStackTrace();
-            }
-        });
+    //Pantalla Como Jugar
+    @FXML
+    public void pantallaComoJugar(ActionEvent event) {
 
-        stageManager.setRoot(guiaComoJugar, "Como Jugar");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/styles/comoJugar.fxml"));
+            Parent root = loader.load();
+            HomeScreen controller = loader.getController();
+            controller.setStageManager(this.stageManager);
+            this.stageManager.setRoot(root, "Como jugar");
+
+        } catch (IOException e) {
+            showAlert("Ups", "Error cargando la pantalla Como Jugar: " + e.getMessage());
+        }
     }
+
 
     // Pantalla creditos
     public void pantallaCreditos(ActionEvent event) {
