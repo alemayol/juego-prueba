@@ -105,9 +105,5 @@ public class CodigoNumericoPane extends TareaPane implements Initializable {
         }
     }
 
-    /*
-    private void actualizarDisplay() {
-    }
 
-     */
 }

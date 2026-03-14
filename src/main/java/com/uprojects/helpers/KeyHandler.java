@@ -11,10 +11,10 @@ import java.util.Set;
 
 public class KeyHandler {
 
-    protected boolean upPressed, downPressed, leftPressed, rightPressed;
+
     protected Set<KeyCode> pressedKeys;
     protected Set<KeyCode> consumedKeys;
-    private Runnable interactionListener;
+
 
     public KeyHandler(Scene scene) {
 
@@ -24,9 +24,6 @@ public class KeyHandler {
 
     }
 
-    public void setInteractionListener(Runnable interaction) {
-        this.interactionListener = interaction;
-    }
 
     public void anclarScene(Scene scene) {
 

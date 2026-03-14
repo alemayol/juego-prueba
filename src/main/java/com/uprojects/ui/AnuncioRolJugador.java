@@ -11,13 +11,13 @@ import javafx.util.Duration;
 public class AnuncioRolJugador extends VBox {
 
     public AnuncioRolJugador(boolean esImpostor, double width, double height, Runnable onFinalizado) {
-        // Setup container
+        // Contenedor
         this.setAlignment(Pos.CENTER);
         this.setSpacing(20);
         this.setStyle("-fx-background-color: rgba(0, 0, 0, 1.0);");
         this.setPrefSize(width, height);
 
-        // Role Label
+        // Rol
         Label lblRol = new Label();
         lblRol.setFont(new Font("Arial", 60));
         lblRol.setStyle("-fx-font-weight: bold; -fx-effect: dropshadow(gaussian, black, 10, 0, 0, 0);");

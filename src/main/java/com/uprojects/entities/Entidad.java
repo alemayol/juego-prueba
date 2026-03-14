@@ -36,9 +36,8 @@ public abstract class Entidad {
         this.tileSize = tileSize;
         this.nombre = nombre;
 
-        this.areaSolida = new Rectangle(8, 16, 16, 14); // Your fixed hitbox
+        this.areaSolida = new Rectangle(8, 16, 16, 14);
 
-        // Initialize arrays
         this.left = new Image[2];
         this.right = new Image[2];
         this.idleL = new Image[2];

@@ -102,7 +102,7 @@ public class MapHandler {
                 BufferedImage imgSet = ImageIO.read(imgSrc);
 
 
-                // Calculate how many columns are in the tileset image
+                // Columnas en la imagen del tileset
                 int columns = imgSet.getWidth() / tileW;
 
 

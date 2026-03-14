@@ -11,11 +11,6 @@ import java.util.HashMap;
 
 public class VotacionPane extends TareaPane {
 
-    /*
-    private Runnable onSaltarVoto;
-    private java.util.function.Consumer<Integer> onVotar;
-
-     */
 
     private VBox contenedor;
     private java.util.function.Consumer<Integer> onVotar;

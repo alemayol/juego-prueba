@@ -111,12 +111,11 @@ public class HomeScreen extends ControladorPantalla {
         }
 
 
-        //stageManager.setRoot(new GamePane(stageManager.scene), "Now Playing");
     }
 
     @FXML
     public void joinLobby(ActionEvent e) {
-        // Quick dialog to ask for the IP Address
+        // Dialogo para pedir IP
         TextInputDialog dialog = new TextInputDialog("127.0.0.1");
         dialog.setTitle("Unirse a partida");
         dialog.setHeaderText("Ingresa la IP del anfitrión");
@@ -262,7 +261,6 @@ public class HomeScreen extends ControladorPantalla {
 
                 if (objeto instanceof Red.PaqueteIniciarJuego paquete) {
                     Platform.runLater(() -> {
-                        //transicionComienzoJuego(conexion, paquete, paneActual);
                         paneActual.cambiarAMapaPrincipal(paquete);
                     });
                 }
@@ -295,7 +293,6 @@ public class HomeScreen extends ControladorPantalla {
                 }
 
                 if (objeto instanceof Red.PaqueteActualizarJugador jugadorExt) {
-                    //System.out.println("Recibida la posicion de " + jugadorExt.nombre);
                     paneActual.actualizarPosicionRemoto(jugadorExt);
                 }
 

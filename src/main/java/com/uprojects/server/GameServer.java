@@ -428,7 +428,6 @@ public class GameServer extends Listener {
         this.mapaElegido = paquete.mapa;
 
         // Se lo mandamos a cada conexion, es decir, a cada jugador conectado al servidor
-        //for (Connection conexion : server.getConnections()) {
         Red.PaqueteIniciarJuego iniciarJuego = new Red.PaqueteIniciarJuego();
         iniciarJuego.mapa = paquete.mapa;
         // Por ahora lo mandamos a la biblioteca, tenemos que calcular esto mejor al tener dos mapas
@@ -459,10 +458,9 @@ public class GameServer extends Listener {
         }
 
         server.sendToAllTCP(iniciarJuego);
-        //}
+
 
         System.out.println("¡Sala llena! Iniciando partida...");
-        //server.sendToAllTCP(new Red.PaqueteIniciarJuego());
     }
 
     private void verificarFinDeJuego() {
@@ -519,7 +517,7 @@ public class GameServer extends Listener {
             fin.mensajeGanador = "¡VICTORIA DE LOS IMPOSTORES!";
             server.sendToAllTCP(fin);
 
-            // Aquí podemos reiniciar las variables para una nueva partida
+
             juegoIniciado = false;
             return;
         }

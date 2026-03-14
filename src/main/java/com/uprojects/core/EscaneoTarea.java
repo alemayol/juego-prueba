@@ -9,7 +9,7 @@ public class EscaneoTarea extends Tarea {
         super(x, y, w, h, "Escaneo de MedBay");
     }
 
-    // ¡Este era el método que faltaba!
+
     @Override
     public TareaPane crearUI() {
         return new EscaneoPane();

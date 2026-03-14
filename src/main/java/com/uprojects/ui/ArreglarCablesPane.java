@@ -155,7 +155,6 @@ public class ArreglarCablesPane extends TareaPane implements Initializable {
 
 
     private void triggerSpark(double x, double y, Color color) {
-        // Create 5-8 small particles for the spark effect
         int particleCount = 6 + random.nextInt(4);
 
         for (int i = 0; i < particleCount; i++) {
@@ -163,30 +162,25 @@ public class ArreglarCablesPane extends TareaPane implements Initializable {
             spark.setMouseTransparent(true);
             panelCables.getChildren().add(spark);
 
-            // Calculate a random direction for the particle to fly
             double angle = Math.toRadians(random.nextInt(360));
             double distance = 20 + random.nextDouble() * 30;
             double targetX = x + Math.cos(angle) * distance;
             double targetY = y + Math.sin(angle) * distance;
 
-            // Create the move animation
             javafx.animation.TranslateTransition move = new javafx.animation.TranslateTransition(Duration.millis(400), spark);
             move.setToX(Math.cos(angle) * distance);
             move.setToY(Math.sin(angle) * distance);
 
-            // Create fade out
             FadeTransition fade = new FadeTransition(Duration.millis(400), spark);
             fade.setFromValue(1.0);
             fade.setToValue(0.0);
 
-            // Create scale down
             ScaleTransition scale = new ScaleTransition(Duration.millis(400), spark);
             scale.setFromX(1.0);
             scale.setFromY(1.0);
             scale.setToX(0.1);
             scale.setToY(0.1);
 
-            // Run all together then remove the circle from the pane
             ParallelTransition pt = new ParallelTransition(move, fade, scale);
             pt.setOnFinished(e -> panelCables.getChildren().remove(spark));
             pt.play();
@@ -206,10 +200,10 @@ public class ArreglarCablesPane extends TareaPane implements Initializable {
 
     @Override
     protected void uiCerrarTarea() {
-        // This is called by TareaPane.ocultarTarea()
+
         panelCables.getChildren().clear();
         lblCompletado.setText("");
-        setupWires(); // Reset the pins for the next time it opens
+        setupWires(); // Se resetea para la prox vez
     }
 
     @FXML
@@ -228,8 +222,6 @@ public class ArreglarCablesPane extends TareaPane implements Initializable {
     @Override
     protected void uiAbrirTarea() {
         actualizarUI();
-        //lblCompletado.setText("");
-        //btnConectar.setDisable(false);
     }
 
 

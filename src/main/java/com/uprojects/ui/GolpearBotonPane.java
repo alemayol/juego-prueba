@@ -1,6 +1,7 @@
 package com.uprojects.ui;
 
 import com.uprojects.core.GolpearBotonTarea;
+import javafx.animation.PauseTransition;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -31,10 +32,10 @@ public class GolpearBotonPane extends TareaPane implements Initializable {
         btnMash.setOnAction(e -> {
             if (tarea != null) {
                 tarea.actualizarTarea(1);
-                // Visual "punch" effect
+                // Efecto de presionado
                 btnMash.setScaleX(1.1);
                 btnMash.setScaleY(1.1);
-                new javafx.animation.PauseTransition(javafx.util.Duration.millis(50))
+                new PauseTransition(javafx.util.Duration.millis(50))
                         .setOnFinished(ev -> {
                             btnMash.setScaleX(1.0);
                             btnMash.setScaleY(1.0);
@@ -60,8 +61,6 @@ public class GolpearBotonPane extends TareaPane implements Initializable {
     @Override
     protected void uiAbrirTarea() {
         actualizarUI();
-        //lblCompletado.setText("");
-        //btnConectar.setDisable(false);
     }
 
     @Override

@@ -1,9 +1,6 @@
 package com.uprojects.screens;
 
 import com.esotericsoftware.kryonet.Client;
-import com.esotericsoftware.kryonet.Connection;
-import com.esotericsoftware.kryonet.Listener;
-import com.uprojects.core.ArreglarCablesTarea;
 import com.uprojects.core.DuctoTarea;
 import com.uprojects.core.SalaVotacion;
 import com.uprojects.core.Tarea;
@@ -25,20 +22,13 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.RadialGradient;
-import javafx.scene.paint.Stop;
 import javafx.util.Duration;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,18 +47,10 @@ public class GamePane extends Pane {
     private boolean juegoIniciado;
 
     // Config Pantalla
-    private final int originalTileSize = 32; // Eje: 16x16 tiles
-    private final int scale = 1;
+    private final int tileSize = 32; // Eje: 16x16 tiles
 
     // ProgressBar
-    //private int totalTareasGlobales;
-    //private javafx.scene.control.ProgressBar barraProgresoTareas;
     private TareaProgressBar barraProgreso;
-
-
-    // World settings
-    // Tamano de cuadros
-    public final int tileSize = originalTileSize * scale; // 32 * 2 = 64x64 tiles
 
 
     // Variables del jugador
@@ -76,8 +58,6 @@ public class GamePane extends Pane {
     private List<Tarea> tareasPorHacer;
     private Tarea tareaActual;
     private boolean impostor = false;
-    private long tiempoDeUltimaPeticionKill = 0;
-    private final long enfriamientoKill = 15000; // 15 segundos == 15000 ms
     private Tarea ductoEnUso;
 
     // Canvas JavaFx
@@ -86,23 +66,16 @@ public class GamePane extends Pane {
     private AnimationTimer gameLoop;
 
 
-    // Contador de FPS
-    private long lastNanoTime = 0;
-    private String fpsDisplay = "FPS: 0";
-    private int frameCount = 0;
-    private long fpsTimer = 0;
-
     // UI de la tarea actualmente mostrada
     private final Pane tareaOverlay;
 
-    // Player creation
+    // Jugador
     private Player localPlayer;
     private int localID;
     private String localPlayerName;
     private String localPlayerColor;
-    //private double conoVision;
 
-    // Map handler (more like map manager but u get it)
+    // Map handler
     private MapHandler mapHandler;
     private String mapaActual;
     private String mapaSeleccionado;
@@ -218,33 +191,11 @@ public class GamePane extends Pane {
 
         inicializarTareaUIs();
 
-        /*
-        if (this.impostor) {
-            tiempoDeUltimaPeticionKill = System.currentTimeMillis();
-        }
-
-         */
 
         this.gameLoop = new AnimationTimer() {
             @Override
             public void handle(long now) {
 
-                if (lastNanoTime == 0) {
-                    lastNanoTime = now;
-                    fpsTimer = now;
-                    return;
-                }
-
-                // FPS
-                frameCount++;
-                // Paso 1 segundo (1,000,000,000 nanosegundos)
-                if (now - fpsTimer >= 1_000_000_000L) {
-                    fpsDisplay = "FPS: " + frameCount;
-                    frameCount = 0;
-                    fpsTimer = now;
-                }
-
-                lastNanoTime = now;
 
                 try {
                     update();
@@ -266,7 +217,6 @@ public class GamePane extends Pane {
         // Si la ventana no esta enfocada o esta realizando una tarea, se paraliza al jugador
         if (!canvas.isFocused() || tareaActual != null) {
             keyH.resetPressedKeys();
-            //canvas.requestFocus();
         }
 
 
@@ -290,15 +240,7 @@ public class GamePane extends Pane {
 
             solicitarKill();
 
-            /*
-            long tiempoActual = System.currentTimeMillis();
 
-            if (tiempoActual - tiempoDeUltimaPeticionKill >= enfriamientoKill) {
-                tiempoDeUltimaPeticionKill = tiempoActual;
-                solicitarKill();
-            }
-
-             */
         }
 
 
@@ -357,74 +299,16 @@ public class GamePane extends Pane {
         }
 
 
-        //mapHandler.draw(this.gc, zoom);
-        //localPlayer.draw(this.gc);
         // Liberamos los recursos que este usando el GraphicalContext
         gc.restore();
 
-        //fogOfWar(gc);
         if (juegoIniciado)
             fog.render(gc, canvas.getWidth(), canvas.getHeight());
 
         // Aqui dibujamos componentes de UI (menus, botones, etc) en una posicion fija
-        //dibujarImpostorEnfriamiento(gc);
         killHUD.actualizarUI();
-        // Contador de FPS
-        gc.setFill(javafx.scene.paint.Color.WHITE);
-        gc.fillText(fpsDisplay, 120, 60); // Draws at top-left
-
     }
 
-    private void dibujarImpostorEnfriamiento(GraphicsContext gc) {
-        if (this.impostor && !localPlayer.wasKilled()) {
-
-            /*
-            // No ha hecho nada o falló una kill
-            if (this.tiempoDeUltimaPeticionKill == 0)
-                return;
-
-             */
-
-            long tiempoActual = System.currentTimeMillis();
-            long transcurrido = tiempoActual - tiempoDeUltimaPeticionKill;
-
-            // Solo dibujamos si esta en enfriamiento
-            if (transcurrido < enfriamientoKill) {
-                double porcentajeRestante = (double) transcurrido / enfriamientoKill;
-                double angulo = 360 * porcentajeRestante;
-
-                // Lo posicionamos abajo a la derecha (como Capriles en el 2014)
-                double x = getWidth() - 100;
-                double y = getHeight() - 100;
-                double size = 60;
-
-                // Circulo (dark/disabled)
-                gc.setFill(Color.rgb(0, 0, 0, 0.6));
-                gc.fillOval(x, y, size, size);
-
-                // Rellenado
-                gc.setFill(Color.rgb(255, 0, 0, 0.5)); // Red "Kill" color
-                gc.fillArc(x, y, size, size, 90, angulo, javafx.scene.shape.ArcType.ROUND);
-
-                // Dibujamos tambien los segundos restantes
-                long secondsLeft = (enfriamientoKill - transcurrido) / 1000 + 1;
-                gc.setFill(Color.WHITE);
-                gc.setFont(new javafx.scene.text.Font("Arial", 20));
-                gc.fillText(String.valueOf(secondsLeft), x + 22, y + 38);
-
-                gc.setFont(new javafx.scene.text.Font("Arial", 12));
-                gc.fillText("TASE", x + 18, y + size + 15);
-            } else {
-                // De lo contrario simplemente dibujamos que puede electrocutar
-                double x = getWidth() - 100;
-                double y = getHeight() - 100;
-                gc.setFill(Color.RED);
-                gc.fillOval(x, y, 60, 60);
-                gc.setFill(Color.WHITE);
-                gc.fillText("LISTO", x + 10, y + 35);
-            }
-        }
-    }
 
     public void removerJugadorRemoto(Red.PaqueteRemoverJugador datos) {
 
@@ -453,14 +337,11 @@ public class GamePane extends Pane {
         }
 
 
-        System.out.println("Creando jugador remoto");
-        System.out.println("Viendo si es duplicado");
         // Evitar duplicados
         if (jugadoresRemotos.containsKey(datos.idJugador)) return;
 
 
         Platform.runLater(() -> {
-            System.out.println("Creando avatar para: " + datos.nombreJugador);
 
             // Creamos la entidad visual
             RemotePlayer nuevoRemoto = new RemotePlayer(
@@ -503,17 +384,14 @@ public class GamePane extends Pane {
 
                     tarea.setCompletada(true);
 
-                    // Bloqueamos la intefaz para evitar spameo the tareas hechas
-                    //ui.setDisable(true);
-
                     System.out.println("Tarea completada!");
                     Red.PaqueteTareaCompletada tareaCompletada = new Red.PaqueteTareaCompletada();
                     tareaCompletada.idJugador = localID;
                     tareaCompletada.tipoTarea = tarea.getNombre();
                     cliente.sendTCP(tareaCompletada);
                     // Autocerrado despues de un segundo luego de completar la tarea
-                    javafx.animation.PauseTransition delay =
-                            new javafx.animation.PauseTransition(javafx.util.Duration.seconds(1));
+                    PauseTransition delay =
+                            new PauseTransition(javafx.util.Duration.seconds(1));
                     delay.setOnFinished(e -> cerrarTareaActual());
                     delay.play();
                 });
@@ -663,10 +541,6 @@ public class GamePane extends Pane {
         }
     }
 
-    public int getTileSize() {
-        return this.tileSize;
-    }
-
 
     private void viajarAlSiguienteDucto() {
 
@@ -691,9 +565,7 @@ public class GamePane extends Pane {
             // Teletransportar al jugador al centro del siguiente ducto
             localPlayer.setWorldPosition(centroDuctoX, centroDuctoY);
 
-            // Cerramos la pantalla del ducto
             this.ductoEnUso = siguienteDucto;
-            //cerrarTareaActual();
         }
     }
 
@@ -706,7 +578,6 @@ public class GamePane extends Pane {
 
         if (this.impostor) {
             System.out.println("-------------- ERES EL IMPOSTOR ------------------");
-            //this.killHUD.comenzarEnfriamiento();
             this.fog.setCampoVision(400.0);
         } else {
             this.fog.setCampoVision(220.0);
@@ -725,11 +596,9 @@ public class GamePane extends Pane {
         this.tareasRestantes = datos.tareasRestantes;
         barraProgreso.setTareasTotales(datos.tareasRestantes);
         barraProgreso.setVisible(true);
-        //this.totalTareasGlobales = datos.tareasRestantes; // Inicialmente son iguales pero solo vamos a restar a tareas restantes
 
         inicializarTareaUIs();
 
-        //this.barraProgresoTareas.setVisible(true);
 
         // Enviamos a todos los jugadores a la biblioteca (debemos calcular esto mejor, por ahora se queda asi)
         this.localPlayer.setWorldPosition(datos.inicioX, datos.inicioY); // Primero al jugador local
@@ -747,45 +616,8 @@ public class GamePane extends Pane {
         this.getChildren().add(pantallaInicio);
         pantallaInicio.toFront();
 
-        //transicionComienzoJuego(datos, this, this.impostor);
     }
 
-
-    private void transicionComienzoJuego(Red.PaqueteIniciarJuego paquete, GamePane pane, boolean impostor) {
-        // Creamos la pantalla oscura que cubrirá todo el stage
-        VBox pantallaComienzo = new VBox(20);
-        pantallaComienzo.setAlignment(Pos.CENTER);
-        pantallaComienzo.setStyle("-fx-background-color: rgba(0, 0, 0, 1.00);"); // Fondo negro casi opaco
-        pantallaComienzo.setPrefSize(pane.getScene().getWidth(), pane.getScene().getHeight());
-
-        // Tomamos el mensaje de victoria del servidor y lo mostramos
-        Label lblRolJugador = new Label();
-        lblRolJugador.setFont(new javafx.scene.text.Font("Arial", 60));
-        lblRolJugador.setStyle("-fx-font-weight: bold; -fx-effect: dropshadow(gaussian, black, 10, 0, 0, 0);");
-
-        // Cambiamos el color dependiendo de quién ganó
-        if (impostor) {
-            lblRolJugador.setTextFill(Color.RED);
-            lblRolJugador.setText("ERES UN IMPOSTOR");
-        } else {
-            lblRolJugador.setTextFill(Color.CYAN); // Azul claro para los tripulantes
-            lblRolJugador.setText("ERES UN TRIPULANTE");
-        }
-
-        pantallaComienzo.getChildren().add(lblRolJugador);
-
-        // Lo agregamos a la pantalla y forzamos que esté por encima de todo
-        pane.getChildren().add(pantallaComienzo);
-        pantallaComienzo.toFront();
-
-        // Iniciamos un temporizador de 5 segundos antes de salir al menú para que no sean tan abrupto el cambio
-        PauseTransition delay = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(5));
-        delay.setOnFinished(e -> {
-            pane.getChildren().remove(pantallaComienzo);
-            pane.getLocalPlayer().setPaused(false);
-        });
-        delay.play();
-    }
 
     public void actualizarLobby(Red.PaqueteLobbyInfo status) {
         Platform.runLater(() -> {
@@ -829,7 +661,6 @@ public class GamePane extends Pane {
         // No se electrocuto a nadie
         if (paquete.idJugadorElectrocutado == -1) {
             System.out.println("No se electrocuto a nadie");
-            //this.tiempoDeUltimaPeticionKill = 0;
             this.killHUD.resetEnfriamiento();
             return;
         }
@@ -964,36 +795,10 @@ public class GamePane extends Pane {
         pantallaFin.toFront();
 
         // Iniciamos un temporizador de 5 segundos antes de salir al menú para que no sean tan abrupto el cambio
-        javafx.animation.PauseTransition delay = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(5));
+        PauseTransition delay = new PauseTransition(javafx.util.Duration.seconds(5));
         delay.setOnFinished(e -> irAMenuPrincipal());
         delay.play();
     }
 
-    /*
-    private void fogOfWar(GraphicsContext gc) {
-
-
-        // Calculamos el centro del jugador, como cuando lo dibujamos
-        double playerScreenX = canvas.getWidth() / 2.0;
-        double playerScreenY = canvas.getHeight() / 2.0;
-
-        // Gradiente radial (transparente en el centro y negro en los bordes)
-        RadialGradient fog = new RadialGradient(
-                0, 0, // angulo, distancia
-                playerScreenX, playerScreenY, // centro del círculo
-                conoVision, // radio del círculo de vision
-                false, // si es proporcional (false para usar pixeles exactos)
-                CycleMethod.NO_CYCLE, // fuera del radio del gradiente no se afecta
-                new Stop(0.0, Color.TRANSPARENT),
-                new Stop(0.6, Color.rgb(0, 0, 0, 0.4)), // Comienza a desvanecerse
-                new Stop(1.0, Color.rgb(0, 0, 0, 0.98)) // oscuro (98% opaco)
-        );
-
-        // Dibujamos un rectángulo sobre todo el gamePane la gradiente
-        gc.setFill(fog);
-        gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-    }
-
-     */
 
 }

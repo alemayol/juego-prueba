@@ -5,18 +5,12 @@ import javafx.scene.canvas.GraphicsContext;
 
 public class RemotePlayer extends Entidad {
 
-    private double targetX, targetY; // Positions received from network
+    private double targetX, targetY;
 
     public RemotePlayer(int tileSize, String nombre, String color) {
         super(tileSize, nombre, color);
     }
 
-    public void actualizar(float netX, float netY, String netAcc) {
-        this.targetX = netX;
-        this.targetY = netY;
-        this.accion = netAcc;
-        this.facingTowards = "right";
-    }
 
     @Override
     public void actualizarPosicion(CollisionChecker cc) {

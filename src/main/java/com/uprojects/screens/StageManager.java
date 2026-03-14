@@ -47,7 +47,6 @@ public class StageManager {
         this.stage.setWidth(500);
         this.stage.setHeight(500);
 
-        //this.stage.setFullScreen(true);
         this.stage.setFullScreenExitHint("Pantalla completa activada. Presiona p para salir");
         this.stage.setFullScreenExitKeyCombination(KeyCombination.valueOf("p"));
 
@@ -61,7 +60,6 @@ public class StageManager {
 
         this.stage = primaryStage;
         this.title = t;
-        //this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.resizable = resize;
         this.gRoot = new Group();
 
@@ -72,7 +70,6 @@ public class StageManager {
         this.stage.setWidth(500);
         this.stage.setHeight(500);
 
-        //this.stage.setFullScreen(true);
         this.stage.setFullScreenExitHint("Pantalla completa activada. Presiona p para salir");
         this.stage.setFullScreenExitKeyCombination(KeyCombination.valueOf("p"));
 

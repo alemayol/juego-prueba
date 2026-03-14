@@ -18,11 +18,9 @@ public class Player extends Entidad {
     private final KeyHandler keyH;
     private CollisionChecker collisionChecker;
     public final int cameraX, cameraY;
-    private List<Tarea> tareasAsignadas;
 
 
-    // IDEA: El jugador recibe el KeyH y un SpawnPoint como argumentos solamente
-    // IDEA 2: Crear una clase Camara que maneje todos esos calculos
+    // IDEA: Crear una clase Camara que maneje todos esos calculos
     public Player(KeyHandler kh, int screenW, int screenH, int tileSize, String name, String color) {
 
         super(tileSize, name, color);
@@ -48,9 +46,6 @@ public class Player extends Entidad {
         this.oculto = false;
     }
 
-    public void asignarTareas(List<Tarea> tareas) {
-        this.tareasAsignadas = tareas;
-    }
 
     @Override
     public void actualizarPosicion(CollisionChecker collisionChecker) {
@@ -115,7 +110,6 @@ public class Player extends Entidad {
 
             // Chequeando si hubo una colision antes de mover al personaje
             colision = false;
-            //collisionChecker.checkTile(this);
 
 
             if (!collisionChecker.estaChocando(worldX + dx, worldY, this)) {

@@ -41,7 +41,7 @@ public abstract class Tarea {
     public void drawInteractionBox(GraphicsContext gc) {
 
         if (this.jugadorCerca && !this.completada) {
-            gc.setStroke(Color.YELLOW); // Green if we can interact
+            gc.setStroke(Color.YELLOW);
             gc.setLineWidth(3);
             gc.setFill(Color.WHITE);
             gc.fillText(

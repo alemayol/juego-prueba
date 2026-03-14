@@ -13,19 +13,13 @@ import java.net.UnknownHostException;
 public class LobbyUI extends VBox {
 
 
-    //private final Client cliente;
     private Button btnSalir;
     private Button btnEmpezar;
     private final Label lblContador;
     private Label lblLocalIP;
-    //private boolean isHost;
-    //private Runnable onSalir;
 
     public LobbyUI(boolean isHost, Client cliente, String mapaSeleccionado, Runnable onSalir) throws UnknownHostException {
         super(20);
-        //this.isHost = isHost;
-        //this.cliente = cliente;
-        //this.onSalir = onSalir;
 
         this.setStyle("-fx-background-color: rgba(0,0,0,0.5); -fx-padding: 20;");
         this.setTranslateX(20);
@@ -35,7 +29,7 @@ public class LobbyUI extends VBox {
         lblContador.setTextFill(Color.WHITE);
 
 
-        // Tratamos de obtener
+        // Tratamos de obtener IP
         try {
             String hostIP = isHost ? InetAddress.getLocalHost().getHostAddress() : "";
 

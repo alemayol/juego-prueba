@@ -37,8 +37,8 @@ public class FogOfWar {
                 false,
                 CycleMethod.NO_CYCLE,
                 new Stop(0.0, Color.TRANSPARENT),
-                new Stop(0.6, Color.rgb(0, 0, 0, 0.4)), // Start fading
-                new Stop(1.0, Color.rgb(0, 0, 0, 0.98)) // Almost fully opaque
+                new Stop(0.6, Color.rgb(0, 0, 0, 0.4)), // Aqui comienza el fading
+                new Stop(1.0, Color.rgb(0, 0, 0, 0.98))
         );
 
         gc.setFill(niebla);
