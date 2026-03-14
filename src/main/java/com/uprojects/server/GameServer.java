@@ -226,8 +226,6 @@ public class GameServer extends Listener {
                 this.tareasRestantes--;
                 jugador.tareasFinalizadas.add(tareaCompletada.tipoTarea);
 
-                //System.out.println(jugador.nombre + " completó una tarea (" + jugador.tareasCompletadas + "/" + jugador.tareasTotales + ")");
-
 
                 verificarFinDeJuego();
 

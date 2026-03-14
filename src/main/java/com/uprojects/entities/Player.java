@@ -52,7 +52,8 @@ public class Player extends Entidad {
         this.tareasAsignadas = tareas;
     }
 
-    public void updatePosition(CollisionChecker collisionChecker) {
+    @Override
+    public void actualizarPosicion(CollisionChecker collisionChecker) {
 
 
         if (paused || killed || oculto) {

@@ -13,15 +13,19 @@ import java.net.UnknownHostException;
 public class LobbyUI extends VBox {
 
 
+    //private final Client cliente;
     private Button btnSalir;
     private Button btnEmpezar;
-    private Label lblContador;
+    private final Label lblContador;
     private Label lblLocalIP;
-    private boolean isHost;
+    //private boolean isHost;
+    //private Runnable onSalir;
 
-    public LobbyUI(int width, boolean isHost, Client cliente) throws UnknownHostException {
-        super(width);
-        this.isHost = isHost;
+    public LobbyUI(boolean isHost, Client cliente, String mapaSeleccionado, Runnable onSalir) throws UnknownHostException {
+        super(20);
+        //this.isHost = isHost;
+        //this.cliente = cliente;
+        //this.onSalir = onSalir;
 
         this.setStyle("-fx-background-color: rgba(0,0,0,0.5); -fx-padding: 20;");
         this.setTranslateX(20);
@@ -31,31 +35,43 @@ public class LobbyUI extends VBox {
         lblContador.setTextFill(Color.WHITE);
 
 
+        // Tratamos de obtener
         try {
             String hostIP = isHost ? InetAddress.getLocalHost().getHostAddress() : "";
-
 
             lblLocalIP = new Label("Server IP: " + hostIP);
             lblLocalIP.setTextFill(Color.WHITE);
         } catch (UnknownHostException ex) {
-
             System.out.println("Advertencia: No se pudo obtener la IP local");
         }
+
 
         btnSalir = new Button("Salir del Lobby");
         btnSalir.setOnAction(e -> {
             cliente.sendTCP(new Red.PaqueteSalirLobby());
-            //irAMenuPrincipal(); // Logic to close the game window
+            onSalir.run();
         });
 
         this.getChildren().addAll(lblLocalIP, lblContador, btnSalir);
 
-        // 3. Add Start button only for Host
+        // El boton para comenzar es solo para el anfitrion
         if (isHost) {
             btnEmpezar = new Button("INICIAR PARTIDA");
-            btnEmpezar.setDisable(true); // Disabled until 5 players
-            btnEmpezar.setOnAction(e -> cliente.sendTCP(new Red.PaquetePedirInicio()));
+            btnEmpezar.setDisable(true); // Desactiva hasta que haya 5 jugadores
+            btnEmpezar.setOnAction(e -> {
+                Red.PaquetePedirInicio nuevoJuego = new Red.PaquetePedirInicio();
+                nuevoJuego.mapa = mapaSeleccionado;
+                cliente.sendTCP(nuevoJuego);
+            });
             this.getChildren().add(btnEmpezar);
+        }
+    }
+
+    public void actualizarUI(int jugConectados, boolean puedeEmpezar) {
+        lblContador.setText("Jugadores: " + jugConectados + "/10 (Min. 5)");
+
+        if (btnEmpezar != null) {
+            btnEmpezar.setDisable(!puedeEmpezar);
         }
     }
 }

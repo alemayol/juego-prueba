@@ -1,17 +1,11 @@
 package com.uprojects.launcher;
 
-import com.esotericsoftware.kryonet.Client;
-import com.uprojects.screens.GameScreen;
 import com.uprojects.screens.HomeScreen;
-import com.uprojects.screens.MainScreen;
 import com.uprojects.screens.StageManager;
-import com.uprojects.server.Red;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;

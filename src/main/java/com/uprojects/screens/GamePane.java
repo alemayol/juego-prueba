@@ -14,10 +14,7 @@ import com.uprojects.entities.Player;
 import com.uprojects.server.GameServer;
 import com.uprojects.server.Red;
 import com.uprojects.stages.MapHandler;
-import com.uprojects.ui.ArreglarCablesPane;
-import com.uprojects.ui.DuctoPane;
-import com.uprojects.ui.TareaPane;
-import com.uprojects.ui.VotacionPane;
+import com.uprojects.ui.*;
 import javafx.animation.AnimationTimer;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
@@ -64,8 +61,9 @@ public class GamePane extends Pane {
     private final int scale = 1;
 
     // ProgressBar
-    private int totalTareasGlobales;
-    private javafx.scene.control.ProgressBar barraProgresoTareas;
+    //private int totalTareasGlobales;
+    //private javafx.scene.control.ProgressBar barraProgresoTareas;
+    private TareaProgressBar barraProgreso;
 
 
     // World settings
@@ -102,7 +100,7 @@ public class GamePane extends Pane {
     private int localID;
     private String localPlayerName;
     private String localPlayerColor;
-    private double conoVision;
+    //private double conoVision;
 
     // Map handler (more like map manager but u get it)
     private MapHandler mapHandler;
@@ -112,12 +110,15 @@ public class GamePane extends Pane {
     // Colision Checker
     private CollisionChecker collisionChecker;
 
+    // Fog of War (Campo de vision del jugador)
+    private FogOfWar fog;
+
     // Lobby
-    private VBox lobbyUI;
-    private Button btnSalir;
-    private Button btnEmpezar;
-    private Label lblContador;
-    private Label lblLocalIP;
+    private LobbyUI lobbyUI;
+
+    // HUD para electrocutar
+    private KillHUD killHUD;
+
 
     public GamePane(Scene scene, Client cliente, int localID, boolean isHost, GameServer servidor, String nombreJugadorLocal, String colorJugadorLocal, StageManager stageManager, String mapa) {
 
@@ -157,6 +158,7 @@ public class GamePane extends Pane {
         this.tareaOverlay.setMouseTransparent(false);
         this.tareaOverlay.setVisible(false);
 
+        // No podemos instanciar el KeyHandler hasta que tengamos una Scene valida
         this.sceneProperty().addListener((obs, oldS, nuevaScene) -> {
             if (nuevaScene != null) {
                 this.keyH = new KeyHandler(scene);
@@ -171,62 +173,20 @@ public class GamePane extends Pane {
         this.ductoEnUso = null;
 
 
-        // Overlay del lobby
-        lobbyUI = new VBox(10);
-        lobbyUI.setStyle("-fx-background-color: rgba(0,0,0,0.5); -fx-padding: 20;");
-        lobbyUI.setTranslateX(20);
-        lobbyUI.setTranslateY(20);
-
-        lblContador = new Label("Esperando jugadores (0/10)");
-        lblContador.setTextFill(Color.WHITE);
-
-
+        // UI
         try {
-            String hostIP = isHost ? InetAddress.getLocalHost().getHostAddress() : "";
-
-
-            lblLocalIP = new Label("Server IP: " + hostIP);
-            lblLocalIP.setTextFill(Color.WHITE);
-        } catch (UnknownHostException ex) {
-
-            System.out.println("Advertencia: No se pudo obtener la IP local");
+            this.lobbyUI = new LobbyUI(isHost, cliente, mapaSeleccionado, this::irAMenuPrincipal);
+        } catch (UnknownHostException e) {
+            System.out.println("No se pudo crear el lobby");
+            irAMenuPrincipal();
         }
 
+        this.barraProgreso = new TareaProgressBar();
+        this.killHUD = new KillHUD(15000);
+        this.killHUD.layoutXProperty().bind(this.widthProperty().subtract(120));
+        this.killHUD.layoutYProperty().bind(this.heightProperty().subtract(140));
 
-        btnSalir = new Button("Salir del Lobby");
-        btnSalir.setOnAction(e -> {
-            cliente.sendTCP(new Red.PaqueteSalirLobby());
-            irAMenuPrincipal(); // Logic to close the game window
-        });
-
-        //Progress Bar
-        barraProgresoTareas = new ProgressBar(0);
-        barraProgresoTareas.setPrefWidth(300);
-        barraProgresoTareas.setPrefHeight(25);
-        barraProgresoTareas.setTranslateX(20);
-        barraProgresoTareas.setTranslateY(20);
-        barraProgresoTareas.setStyle("-fx-accent: #2ecc71; -fx-control-inner-background: #34495e; -fx-background-color: transparent; -fx-border-color: #2ecc71; -fx-border-width: 2;");
-        barraProgresoTareas.setVisible(false);
-
-
-        lobbyUI.getChildren().addAll(lblLocalIP, lblContador, btnSalir);
-
-        // El boton de inicio de juego solo le aparece al anfitrion
-        if (isHost) {
-            btnEmpezar = new Button("INICIAR PARTIDA");
-            btnEmpezar.setDisable(true); // Disabled until 5 players
-            btnEmpezar.setOnAction(e -> {
-
-                Red.PaquetePedirInicio nuevoJuego = new Red.PaquetePedirInicio();
-                nuevoJuego.mapa = this.mapaSeleccionado;
-
-                cliente.sendTCP(nuevoJuego);
-            });
-            lobbyUI.getChildren().add(btnEmpezar);
-        }
-
-
-        this.getChildren().addAll(group, tareaOverlay, lobbyUI, barraProgresoTareas);
+        this.getChildren().addAll(group, tareaOverlay, lobbyUI, barraProgreso, killHUD);
 
         // Nos aseguramos de que sea visible el pane antes de iniciar el juego, de lo contrario el ancho y alto calculado seria de 0,0
         this.layoutBoundsProperty().addListener((obs, oldV, newV) -> {
@@ -254,13 +214,16 @@ public class GamePane extends Pane {
         this.mapaActual = "lobby.tmx";
         this.collisionChecker = new CollisionChecker(mapHandler);
         this.tareasPorHacer = mapHandler.calcularPosicionTareas(false);
-
+        this.fog = new FogOfWar(220.0);
 
         inicializarTareaUIs();
 
+        /*
         if (this.impostor) {
             tiempoDeUltimaPeticionKill = System.currentTimeMillis();
         }
+
+         */
 
         this.gameLoop = new AnimationTimer() {
             @Override
@@ -307,7 +270,7 @@ public class GamePane extends Pane {
         }
 
 
-        localPlayer.updatePosition(collisionChecker);
+        localPlayer.actualizarPosicion(collisionChecker);
         enviarStatusLocalPlayer();
 
         for (Tarea tarea : this.tareasPorHacer) {
@@ -322,18 +285,25 @@ public class GamePane extends Pane {
             }
         }
 
+
         if (keyH.electrocutar() && this.impostor) {
 
+            solicitarKill();
+
+            /*
             long tiempoActual = System.currentTimeMillis();
 
             if (tiempoActual - tiempoDeUltimaPeticionKill >= enfriamientoKill) {
                 tiempoDeUltimaPeticionKill = tiempoActual;
                 solicitarKill();
             }
+
+             */
         }
 
+
         for (RemotePlayer jugadorExterno : jugadoresRemotos.values()) {
-            jugadorExterno.updatePosition(null);
+            jugadorExterno.actualizarPosicion(null);
         }
 
     }
@@ -375,9 +345,9 @@ public class GamePane extends Pane {
             double distancia = Math.hypot(localPlayer.getWorldX() - jugadorExterno.getWorldX(), localPlayer.getWorldY() - jugadorExterno.getWorldY());
 
             if (!this.juegoIniciado) {
-                jugadorExterno.draw(gc, localPlayer);
-            } else if (distancia <= conoVision) {
-                jugadorExterno.draw(gc, localPlayer);
+                jugadorExterno.draw(gc);
+            } else if (distancia <= fog.getCampoVision()) {
+                jugadorExterno.draw(gc);
             }
 
         }
@@ -392,10 +362,13 @@ public class GamePane extends Pane {
         // Liberamos los recursos que este usando el GraphicalContext
         gc.restore();
 
-        fogOfWar(gc);
+        //fogOfWar(gc);
+        if (juegoIniciado)
+            fog.render(gc, canvas.getWidth(), canvas.getHeight());
 
         // Aqui dibujamos componentes de UI (menus, botones, etc) en una posicion fija
-        dibujarImpostorEnfriamiento(gc);
+        //dibujarImpostorEnfriamiento(gc);
+        killHUD.actualizarUI();
         // Contador de FPS
         gc.setFill(javafx.scene.paint.Color.WHITE);
         gc.fillText(fpsDisplay, 120, 60); // Draws at top-left
@@ -458,10 +431,8 @@ public class GamePane extends Pane {
         jugadoresRemotos.remove(datos.idJugadorDesconectado);
 
         Platform.runLater(() -> {
-            lblContador.setText("Jugadores: " + datos.totalJugadoresConectados + "/10 (Min. 5)");
-            if (btnEmpezar != null) {
-                btnEmpezar.setDisable(!datos.puedeEmpezar);
-            }
+
+            this.lobbyUI.actualizarUI(datos.totalJugadoresConectados, datos.puedeEmpezar);
 
         });
 
@@ -731,11 +702,14 @@ public class GamePane extends Pane {
 
         this.impostor = localID == datos.idImpostor1 || localID == datos.idImpostor2;
 
+        this.killHUD.setImpostor(this.impostor);
+
         if (this.impostor) {
             System.out.println("-------------- ERES EL IMPOSTOR ------------------");
-            this.conoVision = 400.0;
+            //this.killHUD.comenzarEnfriamiento();
+            this.fog.setCampoVision(400.0);
         } else {
-            this.conoVision = 220.0;
+            this.fog.setCampoVision(220.0);
         }
 
         // Ocultamos la ventana del lobby
@@ -749,11 +723,13 @@ public class GamePane extends Pane {
         // Si es impostor, no tiene que hacer tareas
         this.tareasPorHacer = mapHandler.calcularPosicionTareas(this.impostor);
         this.tareasRestantes = datos.tareasRestantes;
-        this.totalTareasGlobales = datos.tareasRestantes; // Inicialmente son iguales pero solo vamos a restar a tareas restantes
+        barraProgreso.setTareasTotales(datos.tareasRestantes);
+        barraProgreso.setVisible(true);
+        //this.totalTareasGlobales = datos.tareasRestantes; // Inicialmente son iguales pero solo vamos a restar a tareas restantes
 
         inicializarTareaUIs();
 
-        this.barraProgresoTareas.setVisible(true);
+        //this.barraProgresoTareas.setVisible(true);
 
         // Enviamos a todos los jugadores a la biblioteca (debemos calcular esto mejor, por ahora se queda asi)
         this.localPlayer.setWorldPosition(datos.inicioX, datos.inicioY); // Primero al jugador local
@@ -764,8 +740,14 @@ public class GamePane extends Pane {
             rp.setTargets(datos.inicioX, datos.inicioY);
         }
 
+        AnuncioRolJugador pantallaInicio = new AnuncioRolJugador(this.impostor, this.getScene().getWidth(), this.getScene().getHeight(), () -> {
+            this.localPlayer.setPaused(false);
+        });
 
-        transicionComienzoJuego(datos, this, this.impostor);
+        this.getChildren().add(pantallaInicio);
+        pantallaInicio.toFront();
+
+        //transicionComienzoJuego(datos, this, this.impostor);
     }
 
 
@@ -797,7 +779,7 @@ public class GamePane extends Pane {
         pantallaComienzo.toFront();
 
         // Iniciamos un temporizador de 5 segundos antes de salir al menú para que no sean tan abrupto el cambio
-        javafx.animation.PauseTransition delay = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(5));
+        PauseTransition delay = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(5));
         delay.setOnFinished(e -> {
             pane.getChildren().remove(pantallaComienzo);
             pane.getLocalPlayer().setPaused(false);
@@ -807,10 +789,8 @@ public class GamePane extends Pane {
 
     public void actualizarLobby(Red.PaqueteLobbyInfo status) {
         Platform.runLater(() -> {
-            lblContador.setText("Jugadores: " + status.conectados + "/10 (Min. 5)");
-            if (btnEmpezar != null) {
-                btnEmpezar.setDisable(!status.puedeEmpezar);
-            }
+
+            this.lobbyUI.actualizarUI(status.conectados, status.puedeEmpezar);
 
             if (!this.mapaActual.equals(status.mapaActual)) {
                 this.mapHandler.loadMapFile(status.mapaActual);
@@ -840,10 +820,7 @@ public class GamePane extends Pane {
         this.tareasRestantes = datos.tareasRestantes;
 
         Platform.runLater(() -> {
-            if (totalTareasGlobales > 0) {
-                double progreso = (double) (totalTareasGlobales - tareasRestantes) / totalTareasGlobales;
-                barraProgresoTareas.setProgress(progreso);
-            }
+            barraProgreso.actualizarUI(datos.tareasRestantes);
         });
     }
 
@@ -852,8 +829,14 @@ public class GamePane extends Pane {
         // No se electrocuto a nadie
         if (paquete.idJugadorElectrocutado == -1) {
             System.out.println("No se electrocuto a nadie");
-            this.tiempoDeUltimaPeticionKill = 0;
+            //this.tiempoDeUltimaPeticionKill = 0;
+            this.killHUD.resetEnfriamiento();
             return;
+        }
+
+        // Empezamos el conteo para la siguiente kill
+        if (this.impostor) {
+            this.killHUD.comenzarEnfriamiento();
         }
 
         if (paquete.idJugadorElectrocutado == localID) {
@@ -986,6 +969,7 @@ public class GamePane extends Pane {
         delay.play();
     }
 
+    /*
     private void fogOfWar(GraphicsContext gc) {
 
 
@@ -1009,5 +993,7 @@ public class GamePane extends Pane {
         gc.setFill(fog);
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
     }
+
+     */
 
 }

@@ -11,7 +11,7 @@ public class RemotePlayer extends Entidad {
         super(tileSize, nombre, color);
     }
 
-    public void updateFromNetwork(float netX, float netY, String netAcc) {
+    public void actualizar(float netX, float netY, String netAcc) {
         this.targetX = netX;
         this.targetY = netY;
         this.accion = netAcc;
@@ -19,28 +19,24 @@ public class RemotePlayer extends Entidad {
     }
 
     @Override
-    public void updatePosition(CollisionChecker cc) {
-        // Interpolation (lerp) to prevent stuttering
-        worldX += (targetX - worldX) * 0.1;
-        worldY += (targetY - worldY) * 0.1;
+    public void actualizarPosicion(CollisionChecker cc) {
+        // Interpolacion (lerp) para evitar que sus movimientos sean poco fluidos
+        worldX += (int) ((targetX - worldX) * 0.1);
+        worldY += (int) ((targetY - worldY) * 0.1);
 
         if (Math.abs(targetX - worldX) > 1 || Math.abs(targetY - worldY) > 1) {
             actualizarSprite();
         }
     }
 
-    public void draw(GraphicsContext gc, Player localPlayer) {
+    public void draw(GraphicsContext gc) {
 
         if (this.oculto)
             return;
 
-        // Remote players draw relative to the local player's world position
-        //double screenX = worldX - localPlayer.worldX + localPlayer.cameraX;
-        //double screenY = worldY - localPlayer.worldY + localPlayer.cameraY;
 
+        // Sprite y nombre del jugador
         gc.drawImage(getCurrentImage(), worldX, worldY);
-
-        // Bonus: Draw name tag since we have the 'nombre' property
         gc.fillText(nombre, worldX, worldY - 10);
     }
 

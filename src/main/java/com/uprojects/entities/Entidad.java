@@ -132,7 +132,7 @@ public abstract class Entidad {
     }
 
 
-    public abstract void updatePosition(CollisionChecker collisionChecker);
+    public abstract void actualizarPosicion(CollisionChecker collisionChecker);
 
     public int getWorldX() {
         return this.worldX;
